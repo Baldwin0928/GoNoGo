@@ -160,13 +160,14 @@ function calculateLayeredLayout(nodes, edges) {
   // 4. Coordinate Assignment
   const positions = new Map();
   const centerY = 318;
+  const layoutRowGap = Math.max(NODE_ROW_GAP, NODE_HEIGHT + 24);
   
   // Assign initial Y evenly to preserve crossing reduction order
   bestLayers.forEach(layer => {
     layer.forEach((n, idx) => {
-      n._idealY = idx * NODE_ROW_GAP;
+      n._idealY = idx * layoutRowGap;
     });
-    const avgY = (layer.length - 1) * NODE_ROW_GAP / 2;
+    const avgY = (layer.length - 1) * layoutRowGap / 2;
     layer.forEach(n => n._idealY -= avgY);
   });
   
@@ -177,8 +178,8 @@ function calculateLayeredLayout(nodes, edges) {
     
     // Resolve overlaps
     for (let j = 1; j < nodes.length; j++) {
-      if (nodes[j]._idealY < nodes[j-1]._idealY + NODE_ROW_GAP) {
-        nodes[j]._idealY = nodes[j-1]._idealY + NODE_ROW_GAP;
+      if (nodes[j]._idealY < nodes[j-1]._idealY + layoutRowGap) {
+        nodes[j]._idealY = nodes[j-1]._idealY + layoutRowGap;
       }
     }
     
@@ -284,14 +285,40 @@ function calculateLayeredLayout(nodes, edges) {
       if (!targetPositions.length) return;
       const centroidY = targetPositions.reduce((sum, pos) => sum + pos.y + NODE_CENTER_Y, 0) / targetPositions.length - NODE_CENTER_Y;
       group.nodes.sort((a, b) => (positions.get(a)?.y || 0) - (positions.get(b)?.y || 0) || a - b);
-      const startY = centroidY - ((group.nodes.length - 1) * NODE_ROW_GAP) / 2;
+      const startY = centroidY - ((group.nodes.length - 1) * layoutRowGap) / 2;
       group.nodes.forEach((nodeId, index) => {
         const pos = positions.get(nodeId);
         if (!pos) return;
-        positions.set(nodeId, { ...pos, y: startY + index * NODE_ROW_GAP });
+        positions.set(nodeId, { ...pos, y: startY + index * layoutRowGap });
       });
     });
   }
+
+  // Final collision pass per column. Shared-target centering above can make two
+  // independent groups in the same layer overlap; this preserves order while
+  // enforcing enough vertical room for the rendered node cards.
+  layersByIndex.forEach((ids) => {
+    const ordered = ids
+      .map((id) => ({ id, pos: positions.get(id) }))
+      .filter((item) => item.pos && typeof item.pos.y === "number" && !isNaN(item.pos.y))
+      .sort((a, b) => a.pos.y - b.pos.y || a.id - b.id);
+    if (ordered.length < 2) return;
+
+    const targetCenter = ordered.reduce((sum, item) => sum + item.pos.y, 0) / ordered.length;
+    for (let i = 1; i < ordered.length; i++) {
+      const prev = ordered[i - 1].pos;
+      const current = ordered[i].pos;
+      if (current.y < prev.y + layoutRowGap) {
+        current.y = prev.y + layoutRowGap;
+      }
+    }
+
+    const resolvedCenter = ordered.reduce((sum, item) => sum + item.pos.y, 0) / ordered.length;
+    const drift = resolvedCenter - targetCenter;
+    ordered.forEach((item) => {
+      positions.set(item.id, { ...item.pos, y: item.pos.y - drift });
+    });
+  });
   
   // Prevent going off top edge
   const yValues = Array.from(positions.values()).map(p => p.y).filter(y => typeof y === 'number' && !isNaN(y));
