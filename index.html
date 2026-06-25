@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GTPL Readiness</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <nav class="jira-topnav">
+      <div class="topnav-left">
+        <button class="nav-icon" type="button" aria-label="Sidebar">&lt;</button>
+        <button class="nav-icon" type="button" aria-label="Apps">...</button>
+        <div class="jira-product-mark">G</div>
+        <strong>Dependency</strong>
+      </div>
+      <label class="global-search">
+        <span>Search</span>
+        <input aria-label="Search" placeholder="Search" />
+      </label>
+      <div class="topnav-right">
+        <button class="button compact-create" id="createProjectShortcut" type="button">Create</button>
+        <button class="nav-icon" type="button" aria-label="Notifications">!</button>
+        <div class="avatar">BC</div>
+      </div>
+    </nav>
+
+    <aside class="jira-sidebar">
+      <div class="sidebar-section">
+        <a class="sidebar-link" href="#">For you</a>
+        <a class="sidebar-link" href="#">Recent</a>
+        <a class="sidebar-link" href="#">Starred</a>
+        <a class="sidebar-link" href="#">Apps</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Spaces</div>
+        <a class="sidebar-link active" href="#" data-page="map">GTPL Dependencies</a>
+        <a class="sidebar-link" href="#" data-page="docs">Documentation</a>
+        <a class="sidebar-link" href="#" data-page="work">My Work</a>
+        <a class="sidebar-link" href="#">More spaces</a>
+      </div>
+      <div class="sidebar-section">
+        <a class="sidebar-link" href="#">Filters</a>
+        <a class="sidebar-link" href="#">Dashboards</a>
+        <a class="sidebar-link" href="#" data-page="teams">Teams</a>
+        <a class="sidebar-link" href="#" data-page="projects">Projects</a>
+      </div>
+    </aside>
+
+    <main class="app graph-app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark"><img src="assets/img/whitebutterfly.png" alt="GTPL" /></div>
+          <div>
+            <p class="eyebrow">GTPL Engineering Dependency System</p>
+            <h1 id="pageTitle">Dependency map</h1>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <button class="button secondary" id="seedBtn">Reset GTPL seed</button>
+          <button class="button danger" id="clearBoardBtn" type="button">Full board reset</button>
+          <button class="button" id="exportBtn">Export block diagram</button>
+          <button class="button secondary compact-action" id="undoBtn" type="button" title="Undo (Ctrl+Z)">Undo</button>
+          <button class="button secondary compact-action" id="redoBtn" type="button" title="Redo (Ctrl+Y)">Redo</button>
+        </div>
+      </header>
+
+      <section id="mapPage" class="page-view">
+      <section class="command-bar">
+        <label class="project-control">
+          Project
+          <select id="projectSelect"></select>
+        </label>
+        <label class="campaign-control">
+          Campaign
+          <select id="campaignSelect"></select>
+        </label>
+        <div class="metric">
+          <span>Readiness</span>
+          <strong id="readinessScore">0%</strong>
+          <div class="progress"><div id="readinessBar"></div></div>
+        </div>
+        <div class="metric">
+          <span>Status</span>
+          <strong id="readinessState">Not ready</strong>
+          <small id="readinessSubtext">Select a campaign.</small>
+        </div>
+        <div class="metric compact">
+          <span>Blockers</span>
+          <strong id="blockerCount">0</strong>
+        </div>
+        <button class="button" id="focusCampaignBtn" type="button">Focus campaign</button>
+        <button class="button secondary" id="connectModeBtn" type="button">Connect blocks</button>
+      </section>
+
+      <section class="graph-workspace">
+        <section class="canvas-panel">
+          <div class="canvas-toolbar">
+            <div>
+              <span id="campaignBadge" class="lozenge status-in-progress">Not ready</span>
+              <strong id="campaignHeadline">Hotfire #5 is not ready.</strong>
+              <small id="campaignSummary">Finish the blockers before the campaign can proceed.</small>
+              <small class="flow-note">Flow reads left to right: blocker -> blocked item. Drag blocks to align; Ctrl+Z undoes changes.</small>
+            </div>
+            <label>
+              View
+              <select id="statusFilter">
+                <option value="all">All blocks</option>
+                <option value="blockers">Blockers only</option>
+                <option value="ready">Ready only</option>
+              </select>
+            </label>
+            <div class="map-tools" aria-label="Map controls">
+              <button class="icon-button" id="zoomOutBtn" type="button" title="Zoom out">-</button>
+              <span id="zoomLabel">100%</span>
+              <button class="icon-button" id="zoomInBtn" type="button" title="Zoom in">+</button>
+              <button class="icon-button wide" id="fitMapBtn" type="button" title="Fit campaign">Fit</button>
+              <button class="icon-button wide arrange-button" id="arrangeMapBtn" type="button" title="Auto arrange campaign">Arrange</button>
+              <button class="icon-button wide arrange-button" id="stressTestBtn" type="button" title="Load stress test data">Stress</button>
+            </div>
+          </div>
+          <div id="layoutWarnings" class="form-hint is-hidden" style="margin: 0; border-radius: 0; border-left-color: var(--jira-red); background: var(--jira-red-soft); color: var(--jira-text); border-bottom: 1px solid var(--jira-border);"></div>
+          <div id="graph" class="graph primary-graph"></div>
+        </section>
+
+        <aside class="inspector">
+          <section class="panel inspector-panel inspector-shell">
+            <div class="panel-head">
+              <h2>Inspector</h2>
+              <span id="selectedType">None</span>
+            </div>
+            <div class="inspector-tabs" role="tablist" aria-label="Inspector views">
+              <button class="inspector-tab active" type="button" data-inspector-tab="selected">Selected</button>
+              <button class="inspector-tab" type="button" data-inspector-tab="add">Add</button>
+              <button class="inspector-tab" type="button" data-inspector-tab="blockers">Blockers</button>
+            </div>
+
+            <div class="inspector-tab-panel" id="selectedInspectorPanel" data-inspector-panel="selected">
+              <div id="inspectorContent" class="inspector-content"></div>
+            </div>
+
+            <div class="inspector-tab-panel is-hidden" id="addInspectorPanel" data-inspector-panel="add">
+              <div class="panel-subhead">
+                <strong>Add block</strong>
+                <span id="attachTargetLabel">Select parent</span>
+              </div>
+              <form class="stack-form compact-form" id="objectForm">
+                <p class="form-hint" id="attachHint">Select a block on the map, then add a requirement under it.</p>
+                <label class="attach-field">Attach to<select id="attachParentSelect"></select></label>
+                <label>Block name<input required id="objectName" placeholder="Tank Proof Test" /></label>
+                <div class="two-col">
+                  <label>Class<select id="objectType"></select></label>
+                  <label>Status<select id="objectStatus"></select></label>
+                </div>
+                <label>Owner<input id="objectOwner" list="memberOwnerOptions" placeholder="Structures" /></label>
+                <label>Notes<input id="objectDescription" placeholder="What does this close out?" /></label>
+                <label class="checkline">
+                  <input type="checkbox" id="dependsToggle" />
+                  <span>Depends on another block</span>
+                </label>
+                <label id="dependsOnWrap" class="is-hidden">Depends on<select id="dependsOnSelect"></select></label>
+                <button class="button" id="addBlockBtn" type="submit">Add connected block</button>
+              </form>
+            </div>
+
+            <div class="inspector-tab-panel is-hidden" id="blockersInspectorPanel" data-inspector-panel="blockers">
+              <div class="panel-subhead">
+                <strong>Open blockers</strong>
+                <span id="blockerPanelCount">0 open</span>
+              </div>
+              <div id="blockerList" class="blocker-list"></div>
+              <div class="panel-subhead compact-subhead">
+                <strong>Next actions</strong>
+                <span id="queueCount">0 blocks</span>
+              </div>
+              <ul id="nextActions" class="action-list"></ul>
+            </div>
+          </section>
+        </aside>
+      </section>
+
+      <details class="panel detail-panel">
+        <summary>
+          <span>Data view</span>
+          <small id="objectCount">0 objects</small>
+        </summary>
+        <div class="data-grid">
+          <section>
+            <h3>Campaign requirements</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Requirement</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Owner</th>
+                    <th>Level</th>
+                  </tr>
+                </thead>
+                <tbody id="readinessTable"></tbody>
+              </table>
+            </div>
+          </section>
+          <section>
+            <h3>All blocks</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Owner</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="objectsTable"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </details>
+
+      <details class="panel detail-panel">
+        <summary>
+          <span>Dependency rules</span>
+          <small id="dependencyCount">0 dependencies</small>
+        </summary>
+        <form class="rule-form" id="dependencyForm">
+          <label>This block<select required id="parentSelect"></select></label>
+          <label>Relation<select id="relationshipType"></select></label>
+          <label>Target block<select required id="childSelect"></select></label>
+          <label>Notes<input id="dependencyNotes" placeholder="Reason, revision, or test context" /></label>
+          <button class="button" type="submit">Add rule</button>
+          <p class="form-note" id="ruleWarning"></p>
+        </form>
+        <section class="links-panel">
+          <div class="table-wrap compact-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>This block</th>
+                  <th>Relation</th>
+                  <th>Target block</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="dependenciesTable"></tbody>
+            </table>
+          </div>
+        </section>
+      </details>
+
+      <details class="panel detail-panel report-panel">
+        <summary>
+          <span>Readiness report</span>
+          <small>Open to review or export the generated report.</small>
+        </summary>
+        <textarea id="reportOutput" class="report-output" readonly></textarea>
+      </details>
+      </section>
+
+      <section id="projectsPage" class="page-view is-hidden">
+        <section class="setup-hero panel">
+          <div>
+            <span class="lozenge type-pill">Workspace setup</span>
+            <h2>Projects and campaigns</h2>
+            <p>Think of a project as the big program folder. A campaign is one dependency map inside that project, like a hotfire, cold flow, avionics checkout, or design review.</p>
+          </div>
+        </section>
+        <section class="hierarchy-strip">
+          <article>
+            <strong>1. Project container</strong>
+            <span>Holds related campaigns, blocks, and owners.</span>
+          </article>
+          <article>
+            <strong>2. Campaign map</strong>
+            <span>The actual readiness/dependency board you work on.</span>
+          </article>
+          <article>
+            <strong>3. Blocks</strong>
+            <span>Tasks, tests, hardware, reviews, or documents connected on the map.</span>
+          </article>
+        </section>
+        <section class="setup-grid">
+          <section class="panel setup-panel">
+            <div class="panel-head">
+              <h2>Create project container</h2>
+              <span>Big folder</span>
+            </div>
+            <form class="stack-form" id="projectForm">
+              <p class="form-hint">Use this for a large effort, vehicle, subsystem, or test program. Example: Monarch, GNC Platform, Test Stand Upgrades.</p>
+              <label>Project / program name<input required id="projectName" placeholder="Monarch Test Program" /></label>
+              <label>Short key<input id="projectKey" placeholder="MON" maxlength="8" /></label>
+              <label>Owner<input id="projectOwner" placeholder="Project Lead" /></label>
+              <label>Scope notes<input id="projectDescription" placeholder="What does this project contain?" /></label>
+              <button class="button" type="submit">Create project</button>
+            </form>
+          </section>
+
+          <section class="panel setup-panel">
+            <div class="panel-head">
+              <h2>Create campaign map</h2>
+              <span>One board</span>
+            </div>
+            <form class="stack-form" id="campaignForm">
+              <p class="form-hint">Use this for the specific thing you are trying to make ready. Each campaign gets its own dependency map.</p>
+              <label>Put this campaign under<select id="campaignProjectSelect"></select></label>
+              <label>Campaign / map name<input required id="campaignName" placeholder="Hotfire #6" /></label>
+              <label>Owner<input id="campaignOwner" placeholder="Prop Lead" /></label>
+              <label>Readiness objective<input id="campaignDescription" placeholder="What must be ready?" /></label>
+              <button class="button" type="submit">Create campaign</button>
+            </form>
+          </section>
+        </section>
+
+        <section class="panel detail-panel open-panel">
+          <div class="panel-head">
+            <h2>Project containers</h2>
+            <span id="projectCount">0 projects</span>
+          </div>
+          <div id="projectCards" class="entity-grid"></div>
+        </section>
+      </section>
+
+      <section id="docsPage" class="page-view is-hidden">
+        <header class="notion-page-head docs-page-head">
+          <div class="notion-breadcrumb"><span>GTPL Dependencies</span><span>/</span><span>Engineering docs</span></div>
+          <div class="notion-title-line">
+            <span class="notion-page-icon docs-icon" aria-hidden="true">D</span>
+            <h2>Block Documentation</h2>
+          </div>
+          <p>Long-form engineering context, action items, evidence links, and update logs for each block.</p>
+        </header>
+        <section class="docs-shell">
+          <aside class="panel docs-sidebar">
+            <div class="panel-head">
+              <h2>Block docs</h2>
+              <span id="docsBlockCount">0 blocks</span>
+            </div>
+            <label class="docs-search-field">Search docs<input id="docsSearchInput" type="search" placeholder="Search blocks..." /></label>
+            <label class="docs-filter-field">Filter<select id="docsStatusFilter">
+              <option value="all">All blocks</option>
+              <option value="needs-docs">Needs docs</option>
+              <option value="Blocked">Blocked</option>
+              <option value="Not Started">Not started</option>
+              <option value="In Progress">In progress</option>
+              <option value="Ready">Ready</option>
+            </select></label>
+            <label>Open block<select id="docsBlockSelect"></select></label>
+            <div id="docsBlockList" class="docs-block-list"></div>
+          </aside>
+
+          <section class="panel docs-editor-panel">
+            <div class="panel-head docs-title-row">
+              <div>
+                <span id="docsType" class="lozenge type-pill">Block</span>
+                <h2 id="docsTitle">Select a block</h2>
+              </div>
+              <button class="button secondary" id="docsBackToMapBtn" type="button">Show on map</button>
+            </div>
+            <div id="docsMeta" class="docs-meta"></div>
+            <div id="docsSaveState" class="docs-save-state">Saved</div>
+            <div class="docs-editor-grid">
+              <label>Summary<textarea id="docsSummary" data-doc-summary rows="3" placeholder="What is this block and what closes it out?"></textarea></label>
+              <label>Engineering notes<textarea id="docsBody" data-doc-body rows="12" placeholder="Current state, open issues, evidence, constraints, test context, handoff notes..."></textarea></label>
+            </div>
+          </section>
+
+          <aside class="panel docs-side-panel">
+            <div class="panel-head">
+              <h2>Block tools</h2>
+              <span>Context</span>
+            </div>
+            <div class="docs-tool-tabs" role="tablist" aria-label="Block documentation tools">
+              <button class="docs-tool-tab active" type="button" data-doc-tool-tab="actions">Actions <span id="docsActionCount">0</span></button>
+              <button class="docs-tool-tab" type="button" data-doc-tool-tab="links">Links <span id="docsLinkCount">0</span></button>
+              <button class="docs-tool-tab" type="button" data-doc-tool-tab="updates">Updates <span id="docsUpdateCount">0</span></button>
+            </div>
+
+            <div class="docs-tool-panel" data-doc-tool-panel="actions">
+              <form class="stack-form compact-form" id="docActionForm">
+                <label>New action<input id="docActionText" placeholder="Upload cold flow data" /></label>
+                <button class="button" type="submit">Add action</button>
+              </form>
+              <div id="docActionList" class="doc-list"></div>
+            </div>
+
+            <div class="docs-tool-panel is-hidden" data-doc-tool-panel="links">
+              <form class="stack-form compact-form" id="docLinkForm">
+                <label>Label<input id="docLinkLabel" placeholder="CAD folder" /></label>
+                <label>URL<input id="docLinkUrl" placeholder="https://..." /></label>
+                <button class="button secondary" type="submit">Add link</button>
+              </form>
+              <div id="docLinkList" class="doc-list"></div>
+            </div>
+
+            <div class="docs-tool-panel is-hidden" data-doc-tool-panel="updates">
+              <form class="stack-form compact-form" id="docUpdateForm">
+                <label>Update<input id="docUpdateText" placeholder="What changed?" /></label>
+                <button class="button secondary" type="submit">Log update</button>
+              </form>
+              <div id="docUpdateList" class="doc-list"></div>
+            </div>
+          </aside>
+        </section>
+      </section>
+
+      <section id="workPage" class="page-view is-hidden">
+        <header class="notion-page-head work-page-head">
+          <div class="notion-breadcrumb"><span>GTPL Dependencies</span><span>/</span><span>Team execution</span></div>
+          <div class="notion-title-line">
+            <span class="notion-page-icon work-icon" aria-hidden="true">W</span>
+            <h2>My Work</h2>
+          </div>
+          <p>Owner-focused execution, stale blocks, open actions, and the latest team activity.</p>
+        </header>
+        <section class="command-bar work-command-bar">
+          <label class="project-control">
+            Owner
+            <select id="myOwnerSelect"></select>
+          </label>
+          <div class="metric">
+            <span>Owned blocks</span>
+            <strong id="myOwnedCount">0</strong>
+          </div>
+          <div class="metric">
+            <span>Open actions</span>
+            <strong id="myActionCount">0</strong>
+          </div>
+          <div class="metric compact">
+            <span>Stale</span>
+            <strong id="myStaleCount">0</strong>
+          </div>
+        </section>
+
+        <section class="work-grid">
+          <section class="panel attention-work-panel">
+            <div class="panel-head">
+              <h2>Needs attention</h2>
+              <span>Stale or blocked</span>
+            </div>
+            <div id="staleWorkList" class="work-list"></div>
+          </section>
+          <section class="panel owned-work-panel">
+            <div class="panel-head">
+              <div>
+                <h2>Owned blocks</h2>
+                <span id="myWorkOwnerLabel">All owners</span>
+              </div>
+              <div class="work-section-actions" aria-label="Owned block controls">
+                <select id="workStatusFilter" aria-label="Filter owned blocks by status">
+                  <option value="all">All statuses</option>
+                  <option value="Not Started">Not started</option>
+                  <option value="In Progress">In progress</option>
+                  <option value="Blocked">Blocked</option>
+                  <option value="Ready">Ready</option>
+                  <option value="Complete">Complete</option>
+                </select>
+                <select id="workSortSelect" aria-label="Sort owned blocks">
+                  <option value="updated-desc">Recently updated</option>
+                  <option value="stale-first">Stale first</option>
+                  <option value="status">Status</option>
+                  <option value="owner">Owner</option>
+                </select>
+              </div>
+            </div>
+            <div id="myWorkList" class="work-list"></div>
+          </section>
+          <section class="panel activity-panel">
+            <div class="panel-head">
+              <h2>Activity feed</h2>
+              <span id="activityCount">0 events</span>
+            </div>
+            <div id="activityFeed" class="activity-feed"></div>
+          </section>
+        </section>
+      </section>
+
+      <section id="teamsPage" class="page-view is-hidden">
+        <section class="setup-hero panel">
+          <div>
+            <span class="lozenge type-pill">Online-ready</span>
+            <h2>Teams</h2>
+            <p>Add the people who would be invited into this workspace. Locally this stores a member list; online this would become email invites and access control.</p>
+          </div>
+        </section>
+        <section class="setup-grid">
+          <section class="panel setup-panel">
+            <div class="panel-head">
+              <h2>Add teammate</h2>
+              <span>Email invite</span>
+            </div>
+            <form class="stack-form" id="memberForm">
+              <label>Email<input required type="email" id="memberEmail" placeholder="name@gtpl.org" /></label>
+              <label>Name<input id="memberName" placeholder="Full name" /></label>
+              <div class="two-col">
+                <label>Role<select id="memberRole">
+                  <option>Editor</option>
+                  <option>Viewer</option>
+                  <option>Admin</option>
+                </select></label>
+                <label>Discipline<input id="memberDiscipline" placeholder="Avionics" /></label>
+              </div>
+              <button class="button" type="submit">Add teammate</button>
+            </form>
+          </section>
+          <section class="panel setup-panel">
+            <div class="panel-head">
+              <h2>Access model</h2>
+              <span>Future online</span>
+            </div>
+            <div class="empty-card">
+              Admins manage projects and members. Editors can change maps. Viewers can inspect readiness and export reports.
+            </div>
+          </section>
+        </section>
+        <section class="panel detail-panel open-panel">
+          <div class="panel-head">
+            <h2>Workspace members</h2>
+            <span id="memberCount">0 members</span>
+          </div>
+          <div id="memberCards" class="entity-grid"></div>
+        </section>
+      </section>
+    </main>
+
+    <template id="emptyState">
+      <tr>
+        <td colspan="5" class="empty">No items yet.</td>
+      </tr>
+    </template>
+
+    <div class="context-menu" id="nodeContextMenu" hidden>
+      <button type="button" id="contextAddBlock">Add blocker here</button>
+      <button type="button" id="contextConnectBlock">Connect from here</button>
+      <button type="button" id="contextDeleteBlock" class="danger-action">Delete block</button>
+    </div>
+    <datalist id="memberOwnerOptions"></datalist>
+
+    <script src="app.js"></script>
+  </body>
+</html>
