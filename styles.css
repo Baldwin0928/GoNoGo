@@ -4320,12 +4320,13 @@ body::before {
 
 .topbar{
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 18px;
-  align-items: center;
-  min-height: 38px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 10px 18px;
+  align-items: start;
+  min-height: 48px;
   margin-bottom: 16px;
-  padding-right: 700px;
+  padding-right: min(720px, 44vw);
 }
 
 h1{
@@ -4339,7 +4340,7 @@ h1{
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
-  max-width: 620px;
+  max-width: min(620px, 100%);
   margin-top: 0;
 }
 
@@ -5897,25 +5898,39 @@ body[data-theme="dark"] .jira-topnav {
   left: auto;
   z-index: 50;
   width: min(680px, calc(100vw - 600px));
-  min-width: 480px;
+  min-width: 320px;
+  max-width: calc(100vw - 580px);
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) auto;
-  gap: 12px;
+  grid-template-columns: minmax(160px, 1fr) auto;
+  gap: 10px;
+  align-items: center;
   padding: 0;
   border: 0;
   background: transparent;
   box-shadow: none;
 }
 
+.jira-topnav .global-search {
+  width: 100%;
+  min-width: 0;
+  max-width: 420px;
+  justify-self: stretch;
+}
+
+.jira-topnav .global-search input {
+  width: 100%;
+}
+
 .topbar,
 body[data-theme="dark"] .topbar {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 18px;
-  align-items: center;
-  min-height: 38px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 10px 18px;
+  align-items: start;
+  min-height: 48px;
   margin: 0 0 16px;
-  padding-right: 700px;
+  padding-right: min(720px, 44vw);
   border: 0;
   background: transparent;
 }
@@ -5990,15 +6005,23 @@ select {
 .topbar,
 body[data-theme="dark"] .topbar {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto;
   align-items: start;
-  gap: 18px;
-  padding-right: 0;
+  gap: 10px 18px;
+  min-height: 48px;
+  margin: 0 0 16px;
+  padding-right: min(720px, 44vw);
 }
 
 .topbar-actions {
-  justify-content: end;
-  max-width: 560px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  max-width: min(620px, 100%);
+  margin-top: 0;
 }
 
 #mapPage > .command-bar {
@@ -6008,11 +6031,13 @@ body[data-theme="dark"] .topbar {
     minmax(96px, 0.7fr)
     minmax(126px, 0.8fr)
     minmax(88px, 0.55fr)
+    minmax(150px, 0.9fr)
     minmax(150px, 0.9fr);
 }
 
 #mapPage > .command-bar #focusCampaignBtn,
-#mapPage > .command-bar #connectModeBtn {
+#mapPage > .command-bar #connectModeBtn,
+#mapPage > .command-bar #mapFocusModeCommandBtn {
   min-width: 150px;
   white-space: nowrap;
 }
@@ -6023,15 +6048,18 @@ body[data-theme="dark"] .topbar {
     left: auto;
     width: min(520px, calc(100vw - 610px));
     min-width: 0;
+    max-width: calc(100vw - 320px);
   }
 
-  .topbar {
-    grid-template-columns: 1fr;
+  .topbar,
+  body[data-theme="dark"] .topbar {
+    grid-template-columns: minmax(0, 1fr);
+    padding-right: min(560px, 40vw);
   }
 
   .topbar-actions {
-    justify-content: start;
-    max-width: 100%;
+    justify-content: flex-start;
+    max-width: min(560px, 100%);
   }
 
   #mapPage > .command-bar {
@@ -6042,7 +6070,8 @@ body[data-theme="dark"] .topbar {
   #mapPage > .command-bar > label,
   #mapPage > .command-bar > .metric,
   #mapPage > .command-bar #focusCampaignBtn,
-  #mapPage > .command-bar #connectModeBtn {
+  #mapPage > .command-bar #connectModeBtn,
+  #mapPage > .command-bar #mapFocusModeCommandBtn {
     grid-column: auto;
     grid-row: auto;
     min-height: 96px;
@@ -6050,9 +6079,221 @@ body[data-theme="dark"] .topbar {
   }
 
   #mapPage > .command-bar #focusCampaignBtn,
-  #mapPage > .command-bar #connectModeBtn {
+  #mapPage > .command-bar #connectModeBtn,
+  #mapPage > .command-bar #mapFocusModeCommandBtn {
     min-height: 46px;
     height: 46px;
     align-self: center;
+  }
+}
+
+/* Dependency map focus mode: app-level canvas workspace with inspector drawer. */
+.inspector-drawer-toggle {
+  display: none;
+  min-height: 30px;
+  padding: 0 10px;
+  font-size: 11px;
+}
+
+#mapFocusModeCommandBtn {
+  grid-column: 7;
+  grid-row: 1 / span 2;
+  align-self: stretch;
+  width: 100%;
+  min-height: 54px;
+}
+
+@media (max-width: 1360px) {
+  #mapFocusModeCommandBtn {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
+
+#mapFocusModeBtn {
+  min-width: 108px;
+  padding: 0 14px;
+  border-color: #151515;
+  background: #151515;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+body.map-focus-mode {
+  overflow: hidden;
+  background: #ececea;
+}
+
+body.map-focus-mode::before,
+body.map-focus-mode .jira-topnav,
+body.map-focus-mode .jira-sidebar,
+body.map-focus-mode .topbar,
+body.map-focus-mode #mapPage > .command-bar,
+body.map-focus-mode #mapPage > .detail-panel {
+  display: none;
+}
+
+body.map-focus-mode .graph-app,
+body[data-theme="dark"].map-focus-mode .graph-app {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+}
+
+body.map-focus-mode #mapPage {
+  display: block;
+}
+
+body.map-focus-mode .graph-workspace {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 390px);
+  gap: 14px;
+  width: 100vw;
+  height: 100vh;
+  padding: 14px;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.82), transparent 32%),
+    linear-gradient(135deg, #ededeb 0%, #f7f7f5 54%, #e7e8e6 100%);
+}
+
+body.map-focus-mode .canvas-panel,
+body.map-focus-mode .inspector-panel {
+  height: calc(100vh - 28px);
+  border-radius: 26px;
+}
+
+body.map-focus-mode .canvas-panel {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+body.map-focus-mode .canvas-toolbar {
+  flex: 0 0 auto;
+  border-radius: 26px 26px 0 0;
+}
+
+body.map-focus-mode .primary-graph {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+}
+
+body.map-focus-mode .inspector {
+  min-width: 0;
+  height: calc(100vh - 28px);
+  overflow: visible;
+}
+
+body.map-focus-mode .inspector-shell {
+  position: static;
+  height: 100%;
+  max-height: none;
+}
+
+body.map-focus-mode .inspector-drawer-toggle {
+  display: inline-grid;
+  place-items: center;
+}
+
+body.map-focus-mode .inspector-panel .panel-head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+body.map-focus-mode #mapFocusModeBtn,
+#mapFocusModeCommandBtn {
+  border-color: #151515;
+  background: #151515;
+  color: #fff;
+}
+
+body.map-focus-inspector-collapsed .graph-workspace {
+  grid-template-columns: minmax(0, 1fr) 74px;
+}
+
+body.map-focus-inspector-collapsed .inspector-panel .panel-head {
+  height: 100%;
+  grid-template-columns: 1fr;
+  align-content: start;
+  justify-items: center;
+  padding: 18px 10px;
+}
+
+body.map-focus-inspector-collapsed .inspector-panel h2 {
+  writing-mode: vertical-rl;
+  margin: 4px 0;
+  transform: rotate(180deg);
+}
+
+body.map-focus-inspector-collapsed #selectedType,
+body.map-focus-inspector-collapsed .inspector-tabs,
+body.map-focus-inspector-collapsed .inspector-tab-panel {
+  display: none;
+}
+
+body.map-focus-inspector-collapsed .inspector-drawer-toggle {
+  width: 44px;
+  min-height: 96px;
+  padding: 8px 6px;
+  white-space: normal;
+}
+
+body[data-theme="dark"].map-focus-mode,
+body[data-theme="dark"].map-focus-mode .graph-workspace {
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.08), transparent 32%),
+    linear-gradient(135deg, #15171b 0%, #202329 54%, #121418 100%);
+}
+
+body[data-theme="dark"].map-focus-mode .canvas-panel,
+body[data-theme="dark"].map-focus-mode .inspector-panel {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: #1d2026;
+}
+
+body[data-theme="dark"].map-focus-mode .primary-graph {
+  background: #15171b;
+}
+
+@media (max-width: 980px) {
+  body.map-focus-mode .graph-workspace {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) minmax(220px, 34vh);
+  }
+
+  body.map-focus-mode .inspector,
+  body.map-focus-mode .inspector-panel {
+    height: 100%;
+  }
+
+  body.map-focus-inspector-collapsed .graph-workspace {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) 64px;
+  }
+
+  body.map-focus-inspector-collapsed .inspector-panel .panel-head {
+    height: 64px;
+    grid-template-columns: auto 1fr auto;
+    align-content: center;
+  }
+
+  body.map-focus-inspector-collapsed .inspector-panel h2 {
+    writing-mode: horizontal-tb;
+    transform: none;
+  }
+
+  body.map-focus-inspector-collapsed .inspector-drawer-toggle {
+    width: auto;
+    min-height: 34px;
+    padding: 0 10px;
   }
 }

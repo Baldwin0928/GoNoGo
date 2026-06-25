@@ -84,6 +84,8 @@ let activeDocToolTab = "actions";
 let activeWorkOwner = "all";
 let activeWorkStatus = "all";
 let activeWorkSort = "updated-desc";
+let mapFocusMode = false;
+let mapInspectorCollapsed = false;
 
 function object(name, type, status, owner, description) {
   return {
@@ -597,6 +599,7 @@ function focusSelectedNode() {
 
 function showPage(page) {
   activePage = page;
+  if (page !== "map" && mapFocusMode) setMapFocusMode(false);
   document.querySelectorAll(".page-view").forEach((view) => view.classList.toggle("is-hidden", view.id !== `${page}Page`));
   document.querySelectorAll("[data-page]").forEach((link) => link.classList.toggle("active", link.dataset.page === page));
   const title = document.getElementById("pageTitle");
@@ -604,6 +607,28 @@ function showPage(page) {
     const titles = { projects: "Projects", teams: "Teams", docs: "Documentation", work: "My work", map: "Dependency map" };
     title.textContent = titles[page] || "Dependency map";
   }
+}
+
+function syncMapFocusMode() {
+  document.body.classList.toggle("map-focus-mode", mapFocusMode);
+  document.body.classList.toggle("map-focus-inspector-collapsed", mapFocusMode && mapInspectorCollapsed);
+  document.querySelectorAll("[data-map-focus-toggle]").forEach((focusButton) => {
+    focusButton.textContent = mapFocusMode ? "Exit focus" : "Full screen";
+    focusButton.title = mapFocusMode ? "Exit focused map workspace" : "Open focused map workspace";
+    focusButton.setAttribute("aria-pressed", String(mapFocusMode));
+  });
+  const drawerButton = document.getElementById("inspectorDrawerToggle");
+  if (drawerButton) {
+    drawerButton.textContent = mapInspectorCollapsed ? "Show tools" : "Hide tools";
+    drawerButton.setAttribute("aria-expanded", String(!mapInspectorCollapsed));
+  }
+}
+
+function setMapFocusMode(enabled) {
+  mapFocusMode = Boolean(enabled);
+  if (!mapFocusMode) mapInspectorCollapsed = false;
+  syncMapFocusMode();
+  closeCustomSelects();
 }
 
 function showInspectorTab(tab) {
@@ -764,6 +789,7 @@ function renderAll() {
   renderWorkPage();
   renderMemberOptions();
   showInspectorTab(activeInspectorTab);
+  syncMapFocusMode();
   syncCustomSelects();
   document.getElementById("dependencyCount").textContent = `${state.dependencies.length} dependencies`;
 }
@@ -2758,6 +2784,18 @@ document.addEventListener("click", (event) => {
     return;
   }
 
+  if (event.target.closest("[data-map-focus-toggle]")) {
+    showPage("map");
+    setMapFocusMode(!mapFocusMode);
+    return;
+  }
+
+  if (event.target.id === "inspectorDrawerToggle") {
+    mapInspectorCollapsed = !mapInspectorCollapsed;
+    syncMapFocusMode();
+    return;
+  }
+
   if (event.target.matches("[data-doc-tool-tab]")) {
     activeDocToolTab = event.target.dataset.docToolTab;
     renderDocumentationPage();
@@ -3157,6 +3195,12 @@ document.addEventListener("keydown", (event) => {
         return;
       }
     }
+  }
+
+  if (event.key === "Escape" && mapFocusMode) {
+    event.preventDefault();
+    setMapFocusMode(false);
+    return;
   }
 
   const key = event.key.toLowerCase();
