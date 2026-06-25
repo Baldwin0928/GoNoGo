@@ -427,6 +427,8 @@ document.addEventListener("pointerdown", (event) => {
   }
 
   if (!graphNode || handle) return;
+  event.preventDefault();
+  window.getSelection?.()?.removeAllRanges();
   
   const start = graphPoint(event);
   if (!start) return;

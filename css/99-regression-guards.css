@@ -257,3 +257,22 @@ body[data-theme="dark"] .topbar {
   }
 }
 
+/* Canvas dragging should never invoke browser text selection. */
+#graph,
+#graph *,
+.primary-graph,
+.primary-graph *,
+.graph-node,
+.graph-node *,
+.edge-label,
+.junction-label {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.graph-node text,
+.edge-label,
+.junction-label {
+  pointer-events: none;
+}
+
