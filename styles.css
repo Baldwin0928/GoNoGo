@@ -6008,11 +6008,13 @@ body[data-theme="dark"] .topbar {
     minmax(96px, 0.7fr)
     minmax(126px, 0.8fr)
     minmax(88px, 0.55fr)
+    minmax(150px, 0.9fr)
     minmax(150px, 0.9fr);
 }
 
 #mapPage > .command-bar #focusCampaignBtn,
-#mapPage > .command-bar #connectModeBtn {
+#mapPage > .command-bar #connectModeBtn,
+#mapPage > .command-bar #mapFocusModeCommandBtn {
   min-width: 150px;
   white-space: nowrap;
 }
@@ -6042,7 +6044,8 @@ body[data-theme="dark"] .topbar {
   #mapPage > .command-bar > label,
   #mapPage > .command-bar > .metric,
   #mapPage > .command-bar #focusCampaignBtn,
-  #mapPage > .command-bar #connectModeBtn {
+  #mapPage > .command-bar #connectModeBtn,
+  #mapPage > .command-bar #mapFocusModeCommandBtn {
     grid-column: auto;
     grid-row: auto;
     min-height: 96px;
@@ -6050,7 +6053,8 @@ body[data-theme="dark"] .topbar {
   }
 
   #mapPage > .command-bar #focusCampaignBtn,
-  #mapPage > .command-bar #connectModeBtn {
+  #mapPage > .command-bar #connectModeBtn,
+  #mapPage > .command-bar #mapFocusModeCommandBtn {
     min-height: 46px;
   }
 }
@@ -6061,6 +6065,25 @@ body[data-theme="dark"] .topbar {
   min-height: 30px;
   padding: 0 10px;
   font-size: 11px;
+}
+
+#mapFocusModeCommandBtn {
+  grid-column: 7;
+  grid-row: 1 / span 2;
+  align-self: stretch;
+  width: 100%;
+  min-height: 54px;
+}
+
+@media (max-width: 1360px) {
+  #mapFocusModeCommandBtn {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
+
+.focus-toolbar-toggle {
+  display: none;
 }
 
 .map-focus-mode {
@@ -6145,6 +6168,11 @@ body[data-theme="dark"].map-focus-mode .graph-app {
   place-items: center;
 }
 
+.map-focus-mode .focus-toolbar-toggle {
+  display: inline-grid;
+  place-items: center;
+}
+
 .map-focus-mode .inspector-panel .panel-head {
   display: grid;
   grid-template-columns: auto 1fr auto;
@@ -6152,7 +6180,8 @@ body[data-theme="dark"].map-focus-mode .graph-app {
   align-items: center;
 }
 
-.map-focus-mode #mapFocusModeBtn {
+.map-focus-mode #mapFocusModeBtn,
+#mapFocusModeCommandBtn {
   border-color: #151515;
   background: #151515;
   color: #fff;

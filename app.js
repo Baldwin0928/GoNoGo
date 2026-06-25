@@ -612,12 +612,11 @@ function showPage(page) {
 function syncMapFocusMode() {
   document.body.classList.toggle("map-focus-mode", mapFocusMode);
   document.body.classList.toggle("map-focus-inspector-collapsed", mapFocusMode && mapInspectorCollapsed);
-  const focusButton = document.getElementById("mapFocusModeBtn");
-  if (focusButton) {
+  document.querySelectorAll("[data-map-focus-toggle]").forEach((focusButton) => {
     focusButton.textContent = mapFocusMode ? "Exit focus" : "Full screen";
     focusButton.title = mapFocusMode ? "Exit focused map workspace" : "Open focused map workspace";
     focusButton.setAttribute("aria-pressed", String(mapFocusMode));
-  }
+  });
   const drawerButton = document.getElementById("inspectorDrawerToggle");
   if (drawerButton) {
     drawerButton.textContent = mapInspectorCollapsed ? "Show tools" : "Hide tools";
@@ -2802,7 +2801,7 @@ document.addEventListener("click", (event) => {
     return;
   }
 
-  if (event.target.id === "mapFocusModeBtn") {
+  if (event.target.closest("[data-map-focus-toggle]")) {
     showPage("map");
     setMapFocusMode(!mapFocusMode);
     return;
