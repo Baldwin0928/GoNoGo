@@ -6052,5 +6052,7 @@ body[data-theme="dark"] .topbar {
   #mapPage > .command-bar #focusCampaignBtn,
   #mapPage > .command-bar #connectModeBtn {
     min-height: 46px;
+    height: 46px;
+    align-self: center;
   }
 }
