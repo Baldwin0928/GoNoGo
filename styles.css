@@ -6008,11 +6008,13 @@ body[data-theme="dark"] .topbar {
     minmax(96px, 0.7fr)
     minmax(126px, 0.8fr)
     minmax(88px, 0.55fr)
+    minmax(150px, 0.9fr)
     minmax(150px, 0.9fr);
 }
 
 #mapPage > .command-bar #focusCampaignBtn,
-#mapPage > .command-bar #connectModeBtn {
+#mapPage > .command-bar #connectModeBtn,
+#mapPage > .command-bar #mapFocusModeCommandBtn {
   min-width: 150px;
   white-space: nowrap;
 }
@@ -6042,7 +6044,8 @@ body[data-theme="dark"] .topbar {
   #mapPage > .command-bar > label,
   #mapPage > .command-bar > .metric,
   #mapPage > .command-bar #focusCampaignBtn,
-  #mapPage > .command-bar #connectModeBtn {
+  #mapPage > .command-bar #connectModeBtn,
+  #mapPage > .command-bar #mapFocusModeCommandBtn {
     grid-column: auto;
     grid-row: auto;
     min-height: 96px;
@@ -6050,9 +6053,220 @@ body[data-theme="dark"] .topbar {
   }
 
   #mapPage > .command-bar #focusCampaignBtn,
-  #mapPage > .command-bar #connectModeBtn {
+  #mapPage > .command-bar #connectModeBtn,
+  #mapPage > .command-bar #mapFocusModeCommandBtn {
     min-height: 46px;
     height: 46px;
     align-self: center;
+  }
+}
+
+/* Dependency map focus mode: app-level canvas workspace with inspector drawer. */
+.inspector-drawer-toggle {
+  display: none;
+  min-height: 30px;
+  padding: 0 10px;
+  font-size: 11px;
+}
+
+#mapFocusModeCommandBtn {
+  grid-column: 7;
+  grid-row: 1 / span 2;
+  align-self: stretch;
+  width: 100%;
+  min-height: 54px;
+}
+
+@media (max-width: 1360px) {
+  #mapFocusModeCommandBtn {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
+
+.focus-toolbar-toggle {
+  display: none;
+}
+
+.map-focus-mode {
+  overflow: hidden;
+  background: #ececea;
+}
+
+.map-focus-mode::before,
+.map-focus-mode .jira-topnav,
+.map-focus-mode .jira-sidebar,
+.map-focus-mode .topbar,
+.map-focus-mode #mapPage > .command-bar,
+.map-focus-mode #mapPage > .detail-panel {
+  display: none;
+}
+
+.map-focus-mode .graph-app,
+body[data-theme="dark"].map-focus-mode .graph-app {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+}
+
+.map-focus-mode #mapPage {
+  display: block;
+}
+
+.map-focus-mode .graph-workspace {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 390px);
+  gap: 14px;
+  width: 100vw;
+  height: 100vh;
+  padding: 14px;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.82), transparent 32%),
+    linear-gradient(135deg, #ededeb 0%, #f7f7f5 54%, #e7e8e6 100%);
+}
+
+.map-focus-mode .canvas-panel,
+.map-focus-mode .inspector-panel {
+  height: calc(100vh - 28px);
+  border-radius: 26px;
+}
+
+.map-focus-mode .canvas-panel {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.map-focus-mode .canvas-toolbar {
+  flex: 0 0 auto;
+  border-radius: 26px 26px 0 0;
+}
+
+.map-focus-mode .primary-graph {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+}
+
+.map-focus-mode .inspector {
+  min-width: 0;
+  height: calc(100vh - 28px);
+  overflow: visible;
+}
+
+.map-focus-mode .inspector-shell {
+  position: static;
+  height: 100%;
+  max-height: none;
+}
+
+.map-focus-mode .inspector-drawer-toggle {
+  display: inline-grid;
+  place-items: center;
+}
+
+.map-focus-mode .focus-toolbar-toggle {
+  display: inline-grid;
+  place-items: center;
+}
+
+.map-focus-mode .inspector-panel .panel-head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.map-focus-mode #mapFocusModeBtn,
+#mapFocusModeCommandBtn {
+  border-color: #151515;
+  background: #151515;
+  color: #fff;
+}
+
+.map-focus-inspector-collapsed .graph-workspace {
+  grid-template-columns: minmax(0, 1fr) 74px;
+}
+
+.map-focus-inspector-collapsed .inspector-panel .panel-head {
+  height: 100%;
+  grid-template-columns: 1fr;
+  align-content: start;
+  justify-items: center;
+  padding: 18px 10px;
+}
+
+.map-focus-inspector-collapsed .inspector-panel h2 {
+  writing-mode: vertical-rl;
+  margin: 4px 0;
+  transform: rotate(180deg);
+}
+
+.map-focus-inspector-collapsed #selectedType,
+.map-focus-inspector-collapsed .inspector-tabs,
+.map-focus-inspector-collapsed .inspector-tab-panel {
+  display: none;
+}
+
+.map-focus-inspector-collapsed .inspector-drawer-toggle {
+  width: 44px;
+  min-height: 96px;
+  padding: 8px 6px;
+  white-space: normal;
+}
+
+body[data-theme="dark"].map-focus-mode,
+body[data-theme="dark"].map-focus-mode .graph-workspace {
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.08), transparent 32%),
+    linear-gradient(135deg, #15171b 0%, #202329 54%, #121418 100%);
+}
+
+body[data-theme="dark"].map-focus-mode .canvas-panel,
+body[data-theme="dark"].map-focus-mode .inspector-panel {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: #1d2026;
+}
+
+body[data-theme="dark"].map-focus-mode .primary-graph {
+  background: #15171b;
+}
+
+@media (max-width: 980px) {
+  .map-focus-mode .graph-workspace {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) minmax(220px, 34vh);
+  }
+
+  .map-focus-mode .inspector,
+  .map-focus-mode .inspector-panel {
+    height: 100%;
+  }
+
+  .map-focus-inspector-collapsed .graph-workspace {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) 64px;
+  }
+
+  .map-focus-inspector-collapsed .inspector-panel .panel-head {
+    height: 64px;
+    grid-template-columns: auto 1fr auto;
+    align-content: center;
+  }
+
+  .map-focus-inspector-collapsed .inspector-panel h2 {
+    writing-mode: horizontal-tb;
+    transform: none;
+  }
+
+  .map-focus-inspector-collapsed .inspector-drawer-toggle {
+    width: auto;
+    min-height: 34px;
+    padding: 0 10px;
   }
 }
