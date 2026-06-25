@@ -1,2 +1,2 @@
-# ProbablyReady-
+# GoNoGo
 Project Management for GTPL 
