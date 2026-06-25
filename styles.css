@@ -4376,7 +4376,8 @@ h1{
     minmax(124px, 0.5fr)
     minmax(150px, 0.62fr)
     minmax(112px, 0.42fr)
-    170px;
+    minmax(150px, 0.9fr)
+    minmax(150px, 0.9fr);
   grid-template-rows: 54px 54px;
   gap: 8px 14px;
   align-items: stretch;
@@ -4421,6 +4422,15 @@ h1{
 #connectModeBtn{
   grid-column: 6;
   grid-row: 2;
+  border-color: rgba(20, 20, 20, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+  color: #26334d;
+}
+
+#mapFocusModeCommandBtn {
+  grid-column: 7;
+  grid-row: 1 / span 2;
+  align-self: stretch;
   border-color: rgba(20, 20, 20, 0.08);
   background: rgba(255, 255, 255, 0.92);
   color: #26334d;
@@ -6101,6 +6111,9 @@ body[data-theme="dark"] .topbar {
   align-self: stretch;
   width: 100%;
   min-height: 54px;
+  border-color: rgba(20, 20, 20, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+  color: #26334d;
 }
 
 @media (max-width: 1360px) {
@@ -6210,7 +6223,7 @@ body.map-focus-mode .inspector-panel .panel-head {
 }
 
 body.map-focus-mode #mapFocusModeBtn,
-#mapFocusModeCommandBtn {
+body.map-focus-mode #mapFocusModeCommandBtn {
   border-color: #151515;
   background: #151515;
   color: #fff;
