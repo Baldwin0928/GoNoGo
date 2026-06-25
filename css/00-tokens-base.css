@@ -1,0 +1,644 @@
+/* Split from styles.css - font stack, tokens, base controls, early app structure */
+/* Local product UI font stack, similar to Jira's Atlassian Sans/system stack. */
+
+:root {
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --surface-alt: #f1f2f4;
+  --border: #dfe1e6;
+  --text: #172b4d;
+  --muted: #626f86;
+  --blue: #0c66e4;
+  --blue-dark: #0747a6;
+  --green: #1f845a;
+  --green-bg: #dcfff1;
+  --yellow: #946f00;
+  --yellow-bg: #fff7d6;
+  --red: #c9372c;
+  --red-bg: #ffeceb;
+  --purple: #5e4db2;
+  --shadow: 0 1px 2px rgba(9, 30, 66, 0.15), 0 0 1px rgba(9, 30, 66, 0.18);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--text);
+  background: var(--bg);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.app {
+  width: min(1780px, 100%);
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-mark {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--blue);
+  color: white;
+  font-weight: 800;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  font-weight: 800;
+}
+
+h1 {
+  margin: 2px 0 0;
+  font-size: 28px;
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.button {
+  border: 1px solid var(--blue);
+  background: var(--blue);
+  color: white;
+  border-radius: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.button:hover {
+  background: var(--blue-dark);
+}
+
+.button.secondary {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.button.secondary:hover {
+  background: var(--surface-alt);
+}
+
+.button.danger {
+  background: #fff8f7;
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.button.danger:hover {
+  background: var(--red-bg);
+}
+
+.button.full-width {
+  width: 100%;
+}
+
+.control-strip,
+.campaign-grid,
+.setup-grid,
+.board-grid,
+.lower-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.control-strip {
+  grid-template-columns: minmax(300px, 1.25fr) minmax(190px, 0.8fr) minmax(250px, 1fr) minmax(120px, 0.45fr);
+  align-items: stretch;
+  margin-bottom: 12px;
+}
+
+label,
+.metric {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.control-strip label,
+.metric,
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.control-strip label,
+.metric {
+  padding: 10px 12px;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: white;
+  color: var(--text);
+  padding: 8px 10px;
+  outline: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 2px rgba(12, 102, 228, 0.18);
+}
+
+.metric strong {
+  color: var(--text);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.metric small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.metric.compact {
+  align-content: center;
+}
+
+.campaign-grid {
+  margin-bottom: 12px;
+}
+
+.campaign-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.55fr);
+  gap: 16px;
+  padding: 18px;
+}
+
+.campaign-status h2 {
+  margin: 10px 0 6px;
+  font-size: 24px;
+}
+
+.campaign-status p,
+.next-actions li,
+.form-note {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.next-actions {
+  border-left: 1px solid var(--border);
+  padding-left: 16px;
+}
+
+.next-actions h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.next-actions ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.progress {
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--surface-alt);
+}
+
+.progress div {
+  height: 100%;
+  width: 0;
+  background: var(--blue);
+  transition: width 180ms ease;
+}
+
+.setup-grid {
+  grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
+  margin-bottom: 12px;
+}
+
+.panel {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-head h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.panel-head span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.panel-tools {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: #fafbfc;
+}
+
+.panel-tools label {
+  max-width: 260px;
+}
+
+.blocker-list {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  max-height: 270px;
+  overflow: auto;
+}
+
+.blocker-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px 150px;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid #ffd5d2;
+  border-left: 4px solid var(--red);
+  border-radius: 7px;
+  background: #fff8f7;
+}
+
+.blocker-card strong,
+.blocker-card span {
+  display: block;
+}
+
+.blocker-card span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.empty-card {
+  color: var(--green);
+  background: var(--green-bg);
+  border: 1px solid #baf3db;
+  border-radius: 7px;
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.75fr 0.9fr 0.9fr 1fr auto;
+  gap: 10px;
+  align-items: end;
+  padding: 12px;
+}
+
+.checkline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+}
+
+.checkline input {
+  width: auto;
+}
+
+.is-hidden {
+  display: none;
+}
+
+.form-grid .wide {
+  min-width: 0;
+}
+
+.board-grid {
+  margin-bottom: 12px;
+}
+
+.lower-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(380px, 0.55fr);
+  margin-bottom: 12px;
+}
+
+.table-wrap {
+  overflow: auto;
+  max-height: 430px;
+}
+
+.dependency-panel .table-wrap,
+.object-panel .table-wrap {
+  max-height: 520px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th,
+td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  color: var(--muted);
+  background: #fafbfc;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+tr:hover td {
+  background: #f8f9fb;
+}
+
+.name-cell strong,
+.name-cell span {
+  display: block;
+}
+
+.name-cell span {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.lozenge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.status-ready,
+.status-complete {
+  color: var(--green);
+  background: var(--green-bg);
+}
+
+.status-blocked,
+.status-invalidated {
+  color: var(--red);
+  background: var(--red-bg);
+}
+
+.status-in-progress,
+.status-needs-review {
+  color: var(--yellow);
+  background: var(--yellow-bg);
+}
+
+.status-not-started,
+.status-unknown {
+  color: var(--muted);
+  background: var(--surface-alt);
+}
+
+.type-pill {
+  color: var(--purple);
+  background: #f3f0ff;
+}
+
+.inline-status,
+.inline-owner {
+  min-width: 130px;
+}
+
+.row-action {
+  border: 0;
+  background: transparent;
+  color: var(--red);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 26px;
+}
+
+.graph {
+  height: 360px;
+  overflow: auto;
+  background: #fafbfc;
+}
+
+.graph svg {
+  display: block;
+  min-width: 100%;
+}
+
+.graph-line {
+  stroke: #a6c5e8;
+  stroke-width: 2;
+}
+
+.graph-node rect {
+  fill: white;
+  stroke: var(--border);
+  rx: 6;
+}
+
+.graph-node.ready rect {
+  stroke: var(--green);
+}
+
+.graph-node.blocker rect {
+  stroke: var(--red);
+}
+
+.graph-node text {
+  fill: var(--text);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.graph-node .meta {
+  fill: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.compact-table {
+  max-height: 360px;
+}
+
+.compact-table td:nth-child(4),
+.compact-table th:nth-child(4) {
+  width: 58px;
+}
+
+.detail-panel,
+.report-panel {
+  padding: 0;
+  margin-bottom: 12px;
+}
+
+.detail-panel summary,
+.report-panel summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 46px;
+  padding: 0 14px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.detail-panel summary small,
+.report-panel summary small {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.rule-form {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(140px, 0.65fr) minmax(180px, 1fr) minmax(220px, 1.2fr) auto;
+  gap: 10px;
+  align-items: end;
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.rule-form .form-note {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--red);
+  font-weight: 800;
+}
+
+.report-output {
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  min-height: 320px;
+  padding: 14px;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+@media (max-width: 1280px) {
+  .control-strip,
+  .campaign-panel,
+  .setup-grid,
+  .board-grid,
+  .lower-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .metric.compact {
+    grid-column: span 2;
+  }
+
+  .form-grid,
+  .rule-form {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .blocker-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 820px) {
+  .app {
+    padding: 14px;
+  }
+
+  .topbar,
+  .topbar-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .control-strip,
+  .campaign-panel,
+  .setup-grid,
+  .board-grid,
+  .lower-grid,
+  .form-grid,
+  .rule-form {
+    grid-template-columns: 1fr;
+  }
+
+  .next-actions {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+    padding: 14px 0 0;
+  }
+
+  .metric.compact {
+    grid-column: auto;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+}
+

@@ -1,0 +1,1389 @@
+/* Split from styles.css - soft dashboard shell, command bar, inspector, layout repairs */
+/* Soft product dashboard shell inspired by the provided reference. */
+:root {
+  --dash-bg: #e9e9e7;
+  --dash-shell: #f7f7f6;
+  --dash-card: #ffffff;
+  --dash-card-soft: #f4f4f2;
+  --dash-line: #e3e3df;
+  --dash-line-strong: #d4d4cf;
+  --dash-text: #0f0f0f;
+  --dash-muted: #6f6f6b;
+  --dash-faint: #a4a4a0;
+  --dash-green: #64d982;
+  --dash-green-soft: #e9f8ec;
+  --dash-red: #f16c5d;
+  --dash-red-soft: #fff0ee;
+  --dash-blue: #5e8fdc;
+  --dash-shadow: 0 20px 60px rgba(20, 20, 20, 0.08), 0 2px 10px rgba(20, 20, 20, 0.04);
+  --dash-soft-shadow: 0 12px 30px rgba(20, 20, 20, 0.06);
+}
+
+body {
+  color: var(--dash-text);
+  background: var(--dash-bg);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 42px;
+  right: 44px;
+  bottom: 42px;
+  left: 44px;
+  z-index: -1;
+  border-radius: 28px;
+  background: var(--dash-shell);
+  box-shadow: var(--dash-shadow);
+}
+
+.jira-topnav{
+  position: fixed;
+  top: 54px;
+  right: 66px;
+  left: 560px;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.topnav-left {
+  display: none;
+}
+
+.global-search {
+  display: block;
+  width: min(340px, 100%);
+  justify-self: end;
+}
+
+.global-search input{
+  min-height: 42px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: white;
+  color: var(--dash-text);
+  box-shadow: 0 10px 24px rgba(20, 20, 20, 0.05);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 0 18px;
+}
+
+.global-search input::placeholder {
+  color: var(--dash-muted);
+}
+
+.topnav-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topnav-right .button.compact-create,
+.nav-icon{
+  display: grid;
+  min-width: 42px;
+  min-height: 42px;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: white;
+  color: var(--dash-text);
+  box-shadow: 0 10px 24px rgba(20, 20, 20, 0.05);
+  font-size: 0;
+}
+
+.topnav-right .button.compact-create {
+  min-width: 86px;
+  background: var(--dash-text);
+  color: white;
+  font-size: 12px;
+}
+
+.nav-icon::before {
+  font-size: 16px;
+}
+
+.topnav-right .nav-icon[aria-label="Notifications"]::before {
+  content: "○";
+}
+
+.topnav-right .avatar {
+  width: 42px;
+  height: 42px;
+  border: 3px solid white;
+  background: linear-gradient(135deg, #f2d1b3, #d58b63);
+  color: #302018;
+  box-shadow: 0 10px 24px rgba(20, 20, 20, 0.08);
+}
+
+.jira-sidebar{
+  position: fixed;
+  top: 42px;
+  bottom: 42px;
+  left: 44px;
+  z-index: 40;
+  width: 210px;
+  padding: 30px 14px;
+  border: 0;
+  border-radius: 28px 0 0 28px;
+  background: #f0f0ef;
+  box-shadow: none;
+}
+
+.jira-sidebar::before {
+  content: "";
+  display: block;
+  width: 38px;
+  height: 38px;
+  margin: 0 0 24px 2px;
+  border: 1px solid #111;
+  border-radius: 50%;
+  background:
+    linear-gradient(90deg, transparent 48%, #111 48% 52%, transparent 52%),
+    linear-gradient(0deg, transparent 48%, #111 48% 52%, transparent 52%),
+    radial-gradient(circle at center, transparent 58%, #111 59% 61%, transparent 62%);
+}
+
+.sidebar-section {
+  gap: 6px;
+  padding: 0 0 18px;
+}
+
+.sidebar-heading {
+  padding: 12px 12px 6px;
+  color: var(--dash-faint);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sidebar-link{
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 9px;
+  color: #4e4e4a;
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+  padding: 0 12px;
+}
+
+.sidebar-link::before {
+  content: "○";
+  color: #111;
+  font-size: 13px;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active{
+  background: white;
+  color: var(--dash-text);
+  box-shadow: 0 6px 18px rgba(20, 20, 20, 0.05);
+}
+
+.graph-app{
+  width: auto;
+  min-height: calc(100vh - 84px);
+  margin: 42px 44px 42px 254px;
+  padding: 36px 30px 30px;
+  border-radius: 0 28px 28px 0;
+  background: var(--dash-shell);
+}
+
+.topbar{
+  min-height: 62px;
+  margin: 0 330px 18px 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.brand-mark {
+  display: none;
+}
+
+.eyebrow{
+  display: none;
+}
+
+h1{
+  color: var(--dash-text);
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.05;
+}
+
+.topbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.button,
+.icon-button{
+  min-height: 38px;
+  border: 1px solid rgba(20, 20, 20, 0.08);
+  border-radius: 999px;
+  background: white;
+  color: var(--dash-text);
+  box-shadow: 0 8px 20px rgba(20, 20, 20, 0.055), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  padding: 0 16px;
+}
+
+.button:hover,
+.icon-button:hover{
+  border-color: var(--dash-line-strong);
+  background: var(--dash-card-soft);
+  box-shadow: 0 10px 24px rgba(20, 20, 20, 0.075), inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.button:not(.secondary):not(.danger){
+  border-color: #111;
+  background: #111;
+  color: white;
+  box-shadow: 0 12px 26px rgba(17, 17, 17, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.button.danger{
+  border-color: var(--dash-red-soft);
+  background: var(--dash-red-soft);
+  color: #b33a2f;
+}
+
+.command-bar {
+  display: grid;
+  grid-template-columns: minmax(190px, 1fr) minmax(210px, 1.1fr) repeat(3, minmax(120px, 0.55fr)) max-content max-content;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.command-bar label,
+.command-bar .metric,
+.canvas-panel,
+.inspector-panel,
+.detail-panel,
+.setup-panel,
+.setup-hero,
+.hierarchy-strip article,
+.entity-card,
+.data-grid,
+.links-panel,
+#docsPage,
+#workPage,
+#docsPage .panel,
+#workPage .panel,
+#workPage .command-bar label,
+#workPage .command-bar .metric{
+  border: 1px solid rgba(20, 20, 20, 0.05);
+  border-radius: 24px;
+  background: var(--dash-card);
+  color: var(--dash-text);
+  box-shadow: var(--dash-soft-shadow);
+}
+
+.command-bar label,
+.command-bar .metric {
+  padding: 16px 18px;
+}
+
+label,
+.metric,
+.metric span,
+.panel-head span,
+.detail-panel summary small,
+.canvas-toolbar small,
+.mini-list strong,
+th{
+  color: var(--dash-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.metric strong{
+  color: var(--dash-text);
+  font-size: 26px;
+  font-weight: 800;
+}
+
+input,
+select,
+textarea{
+  border: 1px solid var(--dash-line);
+  border-radius: 14px;
+  background: #fbfbfa;
+  color: var(--dash-text);
+  box-shadow: none;
+  padding: 10px 12px;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+  border-color: #b8b8b3;
+  box-shadow: 0 0 0 4px rgba(20, 20, 20, 0.05);
+  background: white;
+}
+
+.graph-workspace {
+  display: grid;
+  grid-template-columns: minmax(620px, 1fr) minmax(320px, 380px);
+  gap: 14px;
+}
+
+.canvas-panel,
+.inspector-panel{
+  overflow: hidden;
+}
+
+.canvas-toolbar{
+  min-height: 84px;
+  border-bottom: 1px solid var(--dash-line);
+  background: white;
+  padding: 18px 20px;
+}
+
+.canvas-toolbar strong{
+  color: var(--dash-text);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.map-tools {
+  display: flex;
+  align-items: end;
+  gap: 7px;
+}
+
+.map-tools span {
+  min-width: 54px;
+  min-height: 38px;
+  border: 1px solid var(--dash-line);
+  border-radius: 999px;
+  background: white;
+  color: var(--dash-text);
+}
+
+.primary-graph{
+  background: #fbfbfa;
+}
+
+.grid-dot{
+  fill: #d9d9d4;
+}
+
+.graph-line{
+  stroke: #667085;
+  stroke-width: 2.2;
+}
+
+.arrow-head{
+  stroke: #667085;
+}
+
+.edge-label{
+  fill: #667085;
+  stroke: #fbfbfa;
+  stroke-width: 6px;
+}
+
+.graph-node rect:first-child{
+  fill: white;
+  stroke: #dfdfdc;
+  rx: 12;
+  filter: drop-shadow(0 10px 18px rgba(20, 20, 20, 0.08));
+}
+
+.graph-node.ready rect:first-child{
+  stroke: #74d88a;
+}
+
+.graph-node.blocker rect:first-child{
+  stroke: #ff8a78;
+}
+
+.graph-node.selected rect:first-child{
+  stroke: #111;
+  stroke-width: 2.4;
+}
+
+.graph-node text{
+  fill: var(--dash-text);
+  font-weight: 800;
+}
+
+.graph-node .node-type,
+.graph-node .meta,
+.graph-node .node-count{
+  fill: var(--dash-muted);
+}
+
+.graph-node .status-rail{
+  fill: #ff694f;
+  rx: 8;
+}
+
+.graph-node.ready .status-rail{
+  fill: var(--dash-green);
+}
+
+.inspector-panel .panel-head,
+.panel-head{
+  border-bottom: 1px solid var(--dash-line);
+  background: white;
+  padding: 18px 20px;
+}
+
+.panel-head h2{
+  color: var(--dash-text);
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.inspector-tabs {
+  gap: 8px;
+  padding: 12px 14px;
+  background: white;
+}
+
+.inspector-tab {
+  border-radius: 999px;
+  border: 1px solid var(--dash-line);
+  background: white;
+  color: var(--dash-muted);
+}
+
+.inspector-tab.active {
+  background: #111;
+  color: white;
+  border-color: #111;
+}
+
+.selected-card,
+.form-hint,
+.empty-card{
+  border: 1px solid var(--dash-line);
+  border-left: 0;
+  border-radius: 18px;
+  background: #fbfbfa;
+  color: var(--dash-text);
+}
+
+.selected-card h3{
+  color: var(--dash-text);
+}
+
+.selected-card p,
+.mini-list span,
+.mini-list em{
+  color: var(--dash-muted);
+}
+
+.block-workspace {
+  border-color: var(--dash-line);
+  border-radius: 20px;
+  background: white;
+}
+
+.workspace-panel {
+  border-top-color: var(--dash-line);
+}
+
+.detail-panel {
+  margin-top: 14px;
+}
+
+.detail-panel summary {
+  min-height: 62px;
+  padding: 0 20px;
+}
+
+table,
+.report-output{
+  color: var(--dash-text);
+  background: white;
+}
+
+th{
+  background: #f7f7f5;
+}
+
+td{
+  border-bottom-color: var(--dash-line);
+}
+
+.lozenge,
+.type-pill {
+  border-radius: 999px;
+  background: #f1f1ef;
+  color: #555551;
+}
+
+.status-ready,
+.status-complete {
+  color: #1d7a39;
+  background: var(--dash-green-soft);
+}
+
+.status-blocked,
+.status-invalidated {
+  color: #b33a2f;
+  background: var(--dash-red-soft);
+}
+
+.progress {
+  border-radius: 999px;
+  background: #eeeeeb;
+}
+
+.progress div {
+  border-radius: 999px;
+  background: linear-gradient(90deg, #76e58d, #c7f7cf);
+}
+
+#docsPage,
+#workPage {
+  min-height: auto;
+  padding: 28px;
+  box-shadow: var(--dash-soft-shadow);
+}
+
+.notion-title-line h2 {
+  font-size: clamp(2.2rem, 4vw, 4.2rem);
+}
+
+@media (max-width: 1180px) {
+  body::before {
+    inset: 0;
+    border-radius: 0;
+  }
+
+  .jira-sidebar {
+    display: none;
+  }
+
+  .jira-topnav {
+    left: 20px;
+    right: 20px;
+  }
+
+  .graph-app {
+    margin: 0;
+    border-radius: 0;
+    padding-top: 110px;
+  }
+
+  .topbar {
+    margin-right: 0;
+  }
+}
+
+/* Dashboard polish pass: airy spacing, raised controls, calmer graph emphasis. */
+:root {
+  --dash-bg: #e7e7e5;
+  --dash-shell: #f6f6f5;
+  --dash-card-soft: #f7f7f6;
+  --dash-line: #e7e7e3;
+  --dash-line-strong: #d8d8d2;
+  --dash-muted: #6c6c67;
+  --dash-button-shadow: 0 9px 22px rgba(22, 22, 22, 0.065), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  --dash-button-shadow-hover: 0 12px 28px rgba(22, 22, 22, 0.085), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  --dash-card-shadow: 0 16px 38px rgba(24, 24, 24, 0.055), 0 2px 8px rgba(24, 24, 24, 0.035);
+}
+
+body::before {
+  left: 44px;
+  right: 44px;
+  top: 42px;
+  bottom: 42px;
+  background: linear-gradient(90deg, #f0f0ef 0 210px, var(--dash-shell) 210px 100%);
+}
+
+.jira-sidebar{
+  bottom: 42px;
+  background: transparent;
+}
+
+.graph-app{
+  margin-left: 254px;
+  padding-left: 36px;
+  background: transparent;
+}
+
+.jira-topnav{
+  left: min(55vw, 760px);
+}
+
+.global-search {
+  width: min(420px, 100%);
+}
+
+.global-search input{
+  min-height: 46px;
+  border-color: transparent;
+  box-shadow: 0 12px 30px rgba(24, 24, 24, 0.055), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.button,
+.icon-button,
+.nav-icon{
+  border-color: rgba(25, 25, 25, 0.075);
+  box-shadow: var(--dash-button-shadow);
+}
+
+.button:hover,
+.icon-button:hover,
+.nav-icon:hover{
+  box-shadow: var(--dash-button-shadow-hover);
+  transform: translateY(-1px);
+}
+
+.topbar-actions {
+  gap: 7px;
+}
+
+.topbar-actions .button {
+  min-height: 36px;
+  padding: 0 14px;
+}
+
+#seedBtn,
+#undoBtn,
+#redoBtn {
+  background: rgba(255, 255, 255, 0.68);
+  color: #243047;
+}
+
+#clearBoardBtn {
+  border-color: transparent;
+  background: #fff2f0;
+  color: #b23b31;
+}
+
+#exportBtn {
+  background: #111;
+  color: white;
+}
+
+.command-bar {
+  grid-template-columns: minmax(190px, 1.15fr) minmax(230px, 1.25fr) minmax(130px, 0.55fr) minmax(150px, 0.65fr) minmax(120px, 0.45fr) auto auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.command-bar label,
+.command-bar .metric,
+.canvas-panel,
+.inspector-panel,
+.detail-panel,
+.setup-panel,
+.setup-hero,
+.hierarchy-strip article,
+.entity-card,
+.data-grid,
+.links-panel,
+#docsPage,
+#workPage,
+#docsPage .panel,
+#workPage .panel,
+#workPage .command-bar label,
+#workPage .command-bar .metric{
+  border-color: rgba(25, 25, 25, 0.045);
+  box-shadow: var(--dash-card-shadow);
+}
+
+.command-bar label,
+.command-bar .metric {
+  min-height: 112px;
+  padding: 18px 20px;
+}
+
+#focusCampaignBtn,
+#connectModeBtn {
+  align-self: center;
+  justify-self: end;
+  width: auto;
+  min-width: 142px;
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+#focusCampaignBtn {
+  background: #111;
+  color: white;
+}
+
+#connectModeBtn {
+  border-color: rgba(25, 25, 25, 0.12);
+  background: white;
+  color: #26334d;
+}
+
+.metric strong{
+  font-size: 24px;
+  line-height: 1.05;
+}
+
+#readinessState {
+  font-size: 22px;
+}
+
+.graph-workspace {
+  gap: 18px;
+}
+
+.canvas-panel,
+.inspector-panel{
+  border-radius: 26px;
+}
+
+.canvas-toolbar{
+  padding: 20px 22px;
+}
+
+.canvas-toolbar label {
+  min-width: 220px;
+}
+
+.canvas-toolbar select,
+.map-tools span,
+.map-tools .icon-button {
+  min-height: 42px;
+  border-radius: 999px;
+  box-shadow: var(--dash-button-shadow);
+}
+
+.map-tools .icon-button {
+  min-width: 42px;
+  padding: 0 14px;
+}
+
+.map-tools .wide {
+  min-width: 70px;
+}
+
+.primary-graph{
+  background: #fcfcfb;
+}
+
+.grid-dot{
+  fill: #deded9;
+}
+
+.graph-node rect:first-child{
+  stroke: rgba(20, 20, 20, 0.085);
+  stroke-width: 1.2;
+  filter: drop-shadow(0 8px 15px rgba(20, 20, 20, 0.06));
+}
+
+.graph-node.ready rect:first-child{
+  stroke: rgba(62, 188, 95, 0.34);
+}
+
+.graph-node.blocker rect:first-child{
+  stroke: rgba(241, 108, 93, 0.34);
+}
+
+.graph-node .status-rail{
+  width: 5px;
+}
+
+.inspector-panel .panel-head,
+.panel-head{
+  padding: 20px 22px;
+}
+
+.inspector-tabs {
+  gap: 9px;
+  padding: 14px 16px;
+}
+
+.inspector-tab {
+  min-height: 38px;
+  border-radius: 999px;
+  box-shadow: var(--dash-button-shadow);
+}
+
+.inspector-tab.active {
+  box-shadow: 0 10px 24px rgba(17, 17, 17, 0.16);
+}
+
+.selected-card,
+.form-hint,
+.empty-card{
+  border-color: rgba(25, 25, 25, 0.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+@media (max-width: 1180px) {
+  .jira-topnav {
+    left: 20px;
+  }
+
+  body::before {
+    background: var(--dash-shell);
+  }
+}
+
+/* Final soft-dashboard tune-up: consistent spacing, smaller actions, quieter graph cards. */
+html,
+body {
+  overflow-x: hidden;
+}
+
+body::before {
+  box-shadow: 0 24px 70px rgba(18, 18, 18, 0.085), 0 2px 10px rgba(18, 18, 18, 0.035);
+}
+
+.graph-app{
+  box-sizing: border-box;
+  padding-right: 32px;
+}
+
+.topbar{
+  margin-bottom: 24px;
+}
+
+.topbar-actions .button{
+  border-color: rgba(20, 20, 20, 0.075);
+  background: rgba(255, 255, 255, 0.86);
+  color: #273044;
+  box-shadow: var(--dash-button-shadow);
+}
+
+#exportBtn{
+  border-color: #111;
+  background: #111;
+  color: white;
+  box-shadow: 0 12px 24px rgba(17, 17, 17, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+#clearBoardBtn{
+  border-color: rgba(236, 126, 108, 0.12);
+  background: #fff4f2;
+  color: #ad463b;
+}
+
+#seedBtn,
+#undoBtn,
+#redoBtn{
+  color: #4d586d;
+}
+
+.command-bar {
+  grid-template-columns: minmax(210px, 1.18fr) minmax(250px, 1.26fr) minmax(130px, 0.52fr) minmax(145px, 0.6fr) minmax(116px, 0.42fr) max-content max-content;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.command-bar label,
+.command-bar .metric {
+  min-height: 116px;
+  border-radius: 24px;
+}
+
+#focusCampaignBtn,
+#connectModeBtn{
+  width: auto;
+  min-width: 136px;
+  min-height: 46px;
+  padding: 0 20px;
+  border-radius: 999px;
+  font-size: 13px;
+  line-height: 1;
+  box-shadow: var(--dash-button-shadow);
+}
+
+#focusCampaignBtn{
+  border-color: #171717;
+  background: #171717;
+  color: #fff;
+}
+
+#connectModeBtn{
+  border-color: rgba(20, 20, 20, 0.095);
+  background: rgba(255, 255, 255, 0.9);
+  color: #26334d;
+}
+
+.graph-workspace {
+  grid-template-columns: minmax(620px, 1fr) minmax(310px, 374px);
+  gap: 20px;
+}
+
+.canvas-panel,
+.inspector-panel{
+  border-color: rgba(20, 20, 20, 0.04);
+  box-shadow: 0 18px 42px rgba(24, 24, 24, 0.055), 0 2px 8px rgba(24, 24, 24, 0.03);
+}
+
+.canvas-toolbar{
+  gap: 18px;
+  border-bottom-color: rgba(20, 20, 20, 0.055);
+}
+
+.canvas-toolbar select{
+  border-color: rgba(20, 20, 20, 0.055);
+  background: white;
+  box-shadow: var(--dash-button-shadow);
+}
+
+.map-tools {
+  gap: 9px;
+}
+
+.map-tools span,
+.map-tools .icon-button{
+  border-color: rgba(20, 20, 20, 0.065);
+  background: white;
+}
+
+.primary-graph{
+  background: #fdfdfc;
+}
+
+.grid-dot{
+  fill: #e2e2de;
+}
+
+.graph-node rect:first-child,
+.graph-node.ready rect:first-child,
+.graph-node.blocker rect:first-child,
+.graph-node.hardware rect:first-child,
+.graph-node.test rect:first-child,
+.graph-node.document rect:first-child,
+.graph-node.review rect:first-child,
+.graph-node.task rect:first-child,
+.graph-node.person-team rect:first-child{
+  stroke: rgba(20, 20, 20, 0.08);
+  stroke-width: 1.1;
+  filter: drop-shadow(0 9px 16px rgba(20, 20, 20, 0.055));
+}
+
+.graph-node.selected rect:first-child{
+  stroke: rgba(20, 20, 20, 0.78);
+  stroke-width: 2;
+}
+
+.graph-node .status-rail{
+  width: 5px;
+}
+
+.inspector-tabs {
+  gap: 10px;
+}
+
+.inspector-tab{
+  border-color: rgba(20, 20, 20, 0.065);
+  background: white;
+  box-shadow: var(--dash-button-shadow);
+}
+
+.inspector-tab.active{
+  border-color: #151515;
+  background: #151515;
+  color: white;
+  box-shadow: 0 10px 22px rgba(17, 17, 17, 0.14);
+}
+
+/* Layout repair: keep the soft top nav from floating over scrolled content. */
+body {
+  position: relative;
+}
+
+.jira-topnav{
+  position: absolute;
+  top: 54px;
+  right: 66px;
+  left: auto;
+  width: min(680px, calc(100vw - 600px));
+  min-width: 480px;
+  pointer-events: auto;
+}
+
+.graph-app{
+  padding-top: 58px;
+}
+
+.topbar{
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: start;
+  justify-content: start;
+  margin: 0 0 28px 0;
+  padding-right: 700px;
+}
+
+.topbar-actions {
+  align-self: flex-start;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  max-width: 660px;
+  margin-top: 14px;
+}
+
+.topbar-actions .button{
+  min-height: 34px;
+  padding: 0 13px;
+  font-size: 12px;
+}
+
+.command-bar {
+  clear: both;
+}
+
+.graph-workspace {
+  align-items: start;
+}
+
+.inspector{
+  position: static;
+  top: auto;
+}
+
+@media (max-width: 1380px) {
+  .jira-topnav{
+    width: min(560px, calc(100vw - 330px));
+    min-width: 360px;
+    right: 46px;
+  }
+
+  .topbar{
+    padding-right: 580px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .jira-topnav{
+    position: fixed;
+    top: 18px;
+    left: 20px;
+    right: 20px;
+    width: auto;
+    min-width: 0;
+  }
+
+  .graph-app{
+    padding-top: 110px;
+  }
+
+  .topbar{
+    padding-right: 0;
+  }
+}
+
+/* Page shell repair: the rounded dashboard surface must cover full scroll height. */
+body::before {
+  position: absolute;
+  min-height: calc(100vh - 84px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.jira-topnav,
+.jira-sidebar,
+.graph-app{
+  position: relative;
+}
+
+.jira-topnav{
+  position: absolute;
+}
+
+.jira-sidebar{
+  position: fixed;
+}
+
+.graph-app{
+  z-index: 1;
+}
+
+/* Product polish pass: clearer action hierarchy and calmer canvas chrome. */
+.graph-app{
+  padding-top: 42px;
+}
+
+.topbar{
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 10px 18px;
+  align-items: start;
+  min-height: 48px;
+  margin-bottom: 16px;
+  padding-right: min(720px, 44vw);
+}
+
+h1{
+  font-size: 28px;
+  line-height: 1;
+}
+
+.topbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  max-width: min(620px, 100%);
+  margin-top: 0;
+}
+
+.topbar-actions .button{
+  min-height: 34px;
+  border-radius: 999px;
+  border-color: rgba(20, 20, 20, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  color: #4b5568;
+  box-shadow: 0 7px 16px rgba(22, 22, 22, 0.045), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  font-weight: 750;
+  padding: 0 13px;
+}
+
+#exportBtn{
+  border-color: rgba(20, 20, 20, 0.075);
+  background: rgba(255, 255, 255, 0.9);
+  color: #20283a;
+  box-shadow: 0 7px 16px rgba(22, 22, 22, 0.045), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+#clearBoardBtn{
+  border-color: rgba(232, 104, 89, 0.08);
+  background: #fff4f2;
+  color: #b14b40;
+}
+
+#mapPage > .command-bar {
+  grid-template-columns:
+    minmax(220px, 1.22fr)
+    minmax(260px, 1.34fr)
+    minmax(124px, 0.5fr)
+    minmax(150px, 0.62fr)
+    minmax(112px, 0.42fr)
+    minmax(150px, 0.9fr)
+    minmax(150px, 0.9fr);
+  grid-template-rows: 54px 54px;
+  gap: 8px 14px;
+  align-items: stretch;
+  margin-bottom: 16px;
+}
+
+#mapPage > .command-bar > * {
+  min-width: 0;
+}
+
+#mapPage > .command-bar > label,
+#mapPage > .command-bar > .metric {
+  grid-row: 1 / span 2;
+  min-height: 116px;
+  height: 116px;
+  padding: 18px 20px;
+}
+
+#focusCampaignBtn,
+#connectModeBtn{
+  justify-self: stretch;
+  align-self: stretch;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: 54px;
+  padding: 0 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 10px 22px rgba(22, 22, 22, 0.065), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+#focusCampaignBtn{
+  grid-column: 6;
+  grid-row: 1;
+  border-color: #151515;
+  background: #151515;
+  color: #fff;
+}
+
+#connectModeBtn{
+  grid-column: 6;
+  grid-row: 2;
+  border-color: rgba(20, 20, 20, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+  color: #26334d;
+}
+
+#mapFocusModeCommandBtn {
+  grid-column: 7;
+  grid-row: 1 / span 2;
+  align-self: stretch;
+  border-color: rgba(20, 20, 20, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+  color: #26334d;
+}
+
+#connectModeBtn.active{
+  border-color: #151515;
+  background: #151515;
+  color: #fff;
+}
+
+.metric strong{
+  font-size: 23px;
+}
+
+#readinessState {
+  font-size: 21px;
+}
+
+.graph-workspace {
+  gap: 18px;
+}
+
+.canvas-toolbar{
+  display: grid;
+  grid-template-columns: minmax(300px, 1fr) auto auto;
+  align-items: center;
+  gap: 16px;
+  min-height: 76px;
+  padding: 16px 20px;
+}
+
+.canvas-toolbar strong{
+  display: block;
+  margin-top: 4px;
+  font-size: 17px;
+  line-height: 1.1;
+}
+
+.canvas-toolbar small{
+  font-size: 11px;
+  line-height: 1.25;
+  color: #738096;
+}
+
+.canvas-toolbar .flow-note{
+  display: block;
+  max-width: 520px;
+  margin-top: 3px;
+  color: #7b8496;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.canvas-toolbar label{
+  min-width: 190px;
+  margin: 0;
+  font-size: 0;
+}
+
+.canvas-toolbar label select{
+  width: 100%;
+  min-height: 42px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.map-tools {
+  align-items: center;
+  gap: 8px;
+}
+
+.map-tools span,
+.map-tools .icon-button{
+  min-height: 42px;
+  height: 42px;
+  border-radius: 999px;
+}
+
+.map-tools span {
+  display: grid;
+  place-items: center;
+}
+
+.map-tools .wide {
+  min-width: 76px;
+}
+
+.edge-label,
+.junction-label{
+  opacity: 0;
+  pointer-events: none;
+}
+
+.graph-line:hover + .edge-label{
+  opacity: 0.78;
+}
+
+.inspector-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 14px 16px;
+}
+
+.inspector-tab{
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+@media (max-width: 1480px) {
+  .topbar{
+    padding-right: 580px;
+  }
+
+  #mapPage > .command-bar {
+    grid-template-columns:
+      minmax(145px, 1.1fr)
+      minmax(180px, 1.2fr)
+      minmax(92px, 0.46fr)
+      minmax(112px, 0.56fr)
+      minmax(78px, 0.36fr)
+      142px;
+    gap: 8px 10px;
+  }
+
+  #focusCampaignBtn,
+  #connectModeBtn{
+    padding: 0 14px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .topbar{
+    grid-template-columns: 1fr;
+    padding-right: 0;
+  }
+
+  #mapPage > .command-bar {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+  }
+
+  #mapPage > .command-bar > label,
+  #mapPage > .command-bar > .metric,
+  #focusCampaignBtn,
+  #connectModeBtn {
+    grid-column: auto;
+    grid-row: auto;
+    height: auto;

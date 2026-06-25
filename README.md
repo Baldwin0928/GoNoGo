@@ -2,7 +2,7 @@
 
 This is a local, dependency-first readiness tracker for GTPL hardware campaigns.
 
-Open `index.html` in a browser. The app is a canvas-first dependency workflow and stores changes in browser `localStorage`, so it does not need a backend for the first prototype.
+Open `index.html` directly or through a local static server. The app is a canvas-first dependency workflow and stores changes in browser `localStorage`, so it does not need a backend for the first prototype.
 
 ## What it does
 
@@ -30,8 +30,13 @@ For a campaign, the app recursively walks every dependency and marks anything el
 ## Files
 
 - `index.html` - App shell and screens.
-- `styles.css` - Jira-like product UI styling.
-- `app.js` - Data model, local storage, dependency traversal, readiness logic, rendering.
+- `styles.css` - Thin CSS entry point that imports ordered partials from `css/`.
+- `app.js` - Compatibility entry point kept for old references; active chunks are loaded directly from `index.html`.
+- `css/` - CSS partials kept in cascade order.
+- `js/` - JavaScript chunks split by responsibility.
+- `docs/ARCHITECTURE.md` - App architecture, data model, dependency direction, and render pipeline.
+- `docs/TEST_CHECKLIST.md` - Manual smoke test checklist for visual and behavior parity.
+- `docs/FILE_MAP.md` - Map from old monolith sections to the new split files.
 
 ## Suggested next upgrades
 

@@ -1,0 +1,867 @@
+/* Split from styles.css - My Work, Documentation, Projects page layout refinements */
+    min-height: 54px;
+  }
+
+  .canvas-toolbar{
+    grid-template-columns: 1fr;
+  }
+}
+
+/* My Work dashboard: prioritize urgent rows and avoid cramped three-column panels. */
+#workPage .work-page-head,
+#workPage .work-command-bar,
+#workPage .work-grid {
+  max-width: 1320px;
+}
+
+#workPage .work-page-head {
+  margin-bottom: 22px;
+}
+
+#workPage .work-command-bar {
+  grid-template-columns: minmax(260px, 1.6fr) minmax(180px, 1fr) minmax(150px, 0.7fr) minmax(130px, 0.55fr);
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+#workPage .work-command-bar label,
+#workPage .work-command-bar .metric {
+  min-height: 98px;
+  border-radius: 22px;
+  padding: 18px 20px;
+}
+
+#workPage .work-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  margin: 0 auto;
+}
+
+#workPage .attention-work-panel,
+#workPage .owned-work-panel,
+#workPage .activity-panel {
+  width: 100%;
+  padding: 20px;
+  border-radius: 24px;
+}
+
+#workPage .activity-panel {
+  max-height: none;
+  overflow: visible;
+}
+
+#workPage .panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+}
+
+#workPage .panel-head h2 {
+  font-size: 1.05rem;
+}
+
+#workPage .work-list {
+  display: grid;
+  gap: 10px;
+}
+
+#workPage .owned-work-panel .work-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+#workPage .attention-work-panel .work-list {
+  grid-template-columns: 1fr;
+}
+
+#workPage .work-card {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.35fr) minmax(260px, 0.95fr) minmax(130px, auto);
+  align-items: center;
+  gap: 18px;
+  min-height: 104px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border-color: rgba(20, 20, 20, 0.06);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 10px 26px rgba(24, 24, 24, 0.045);
+}
+
+#workPage .owned-work-panel .work-card {
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: 12px;
+}
+
+#workPage .work-card.attention {
+  border-left: 5px solid rgba(212, 76, 71, 0.72);
+  background: linear-gradient(90deg, rgba(253, 235, 236, 0.78), rgba(255, 255, 255, 0.96) 42%);
+  color: var(--notion-text);
+}
+
+#workPage .work-card h3 {
+  margin: 8px 0 5px;
+  font-size: 1.08rem;
+  line-height: 1.18;
+}
+
+#workPage .work-card p {
+  margin: 0;
+  color: #667085;
+  font-size: 0.84rem;
+}
+
+#workPage .work-card dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(70px, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+#workPage .work-card dt {
+  color: #7c8493;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+#workPage .work-card dd {
+  margin: 3px 0 0;
+  color: #171717;
+  font-size: 0.98rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+#workPage .work-card .button {
+  justify-self: end;
+  min-width: 118px;
+  min-height: 38px;
+  border-radius: 999px;
+  background: white;
+  color: #26334d;
+  box-shadow: 0 8px 18px rgba(22, 22, 22, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+#workPage .owned-work-panel .work-card .button {
+  width: 100%;
+  justify-self: stretch;
+}
+
+#workPage .activity-feed {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  padding-left: 18px;
+}
+
+#workPage .activity-feed::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 5px;
+  width: 2px;
+  border-radius: 999px;
+  background: rgba(138, 167, 183, 0.28);
+}
+
+#workPage .activity-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(160px, 0.35fr) minmax(280px, 1fr) max-content;
+  align-items: center;
+  gap: 14px;
+  min-height: 62px;
+  padding: 12px 14px;
+  border-left: 0;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 20px rgba(24, 24, 24, 0.035);
+}
+
+#workPage .activity-item::before {
+  content: "";
+  position: absolute;
+  left: -17px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border: 3px solid white;
+  border-radius: 999px;
+  background: #8aa7b7;
+  transform: translateY(-50%);
+  box-shadow: 0 0 0 1px rgba(138, 167, 183, 0.3);
+}
+
+#workPage .activity-item strong {
+  font-size: 0.95rem;
+}
+
+#workPage .activity-item span {
+  margin: 0;
+  color: #5f6877;
+  line-height: 1.25;
+}
+
+#workPage .activity-item small {
+  justify-self: end;
+  color: #858b96;
+  white-space: nowrap;
+}
+
+@media (max-width: 1320px) {
+  #workPage .owned-work-panel .work-list {
+    grid-template-columns: 1fr;
+  }
+
+  #workPage .owned-work-panel .work-card {
+    grid-template-columns: minmax(240px, 1.35fr) minmax(240px, 0.95fr) minmax(120px, auto);
+  }
+
+  #workPage .owned-work-panel .work-card .button {
+    width: auto;
+    justify-self: end;
+  }
+}
+
+@media (max-width: 900px) {
+  #workPage .work-command-bar,
+  #workPage .work-card,
+  #workPage .owned-work-panel .work-card,
+  #workPage .activity-item {
+    grid-template-columns: 1fr;
+  }
+
+  #workPage .work-card .button,
+  #workPage .owned-work-panel .work-card .button,
+  #workPage .activity-item small {
+    width: 100%;
+    justify-self: stretch;
+  }
+}
+
+/* Prefer readable work rows over cramped grids on the owner dashboard. */
+#workPage .owned-work-panel .work-list {
+  grid-template-columns: 1fr;
+}
+
+#workPage .owned-work-panel .work-card {
+  grid-template-columns: minmax(260px, 1.35fr) minmax(260px, 0.95fr) minmax(130px, auto);
+  align-items: center;
+}
+
+#workPage .owned-work-panel .work-card .button {
+  width: auto;
+  justify-self: end;
+}
+
+@media (max-width: 900px) {
+  #workPage .owned-work-panel .work-card {
+    grid-template-columns: 1fr;
+  }
+
+  #workPage .owned-work-panel .work-card .button {
+    width: 100%;
+    justify-self: stretch;
+  }
+}
+
+/* My Work scale pass: keep urgent work wide, make owned work scannable. */
+#workPage .owned-work-panel .panel-head {
+  align-items: end;
+}
+
+#workPage .owned-work-panel .panel-head > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+#workPage .work-section-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+#workPage .work-section-actions select {
+  width: auto;
+  min-width: 142px;
+  min-height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(20, 20, 20, 0.06);
+  background: rgba(255, 255, 255, 0.9);
+  color: #4b5568;
+  box-shadow: 0 7px 16px rgba(22, 22, 22, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  font-size: 0.8rem;
+  font-weight: 650;
+  padding: 0 12px;
+}
+
+#workPage .owned-work-panel .work-list {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: 14px;
+}
+
+#workPage .owned-work-panel .work-card {
+  grid-template-columns: 1fr;
+  align-items: stretch;
+  gap: 14px;
+  min-height: 172px;
+  padding: 16px 18px;
+}
+
+#workPage .owned-work-panel .work-card > div:first-child {
+  min-width: 0;
+}
+
+#workPage .owned-work-panel .work-card h3 {
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+
+#workPage .owned-work-panel .work-card dl {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+}
+
+#workPage .owned-work-panel .work-card .button {
+  width: 100%;
+  justify-self: stretch;
+}
+
+#workPage .attention-work-panel .work-card {
+  grid-template-columns: minmax(240px, 1.35fr) minmax(260px, 0.95fr) minmax(130px, auto);
+}
+
+#workPage .activity-feed {
+  --timeline-rail: 24px;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding-left: 0;
+}
+
+#workPage .activity-feed::before {
+  left: calc(var(--timeline-rail) / 2);
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  transform: translateX(-50%);
+  background: rgba(138, 167, 183, 0.22);
+}
+
+#workPage .activity-item {
+  display: grid;
+  grid-template-columns: var(--timeline-rail) minmax(150px, 0.35fr) minmax(260px, 1fr) max-content;
+  gap: 12px;
+  min-height: 60px;
+  padding: 11px 14px 11px 0;
+  border-color: rgba(20, 20, 20, 0.045);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 6px 16px rgba(24, 24, 24, 0.026);
+}
+
+#workPage .activity-item::before {
+  left: calc(var(--timeline-rail) / 2);
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  border: 3px solid white;
+  transform: translate(-50%, -50%);
+  background: #8aa7b7;
+}
+
+#workPage .activity-item strong {
+  grid-column: 2;
+}
+
+#workPage .activity-item span {
+  grid-column: 3;
+  color: #667085;
+}
+
+#workPage .activity-item small {
+  grid-column: 4;
+  color: #89909b;
+}
+
+@media (min-width: 1720px) {
+  #workPage .owned-work-panel .work-list {
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  #workPage .owned-work-panel .panel-head {
+    align-items: start;
+  }
+
+  #workPage .work-section-actions {
+    justify-content: stretch;
+  }
+
+  #workPage .work-section-actions select {
+    flex: 1 1 150px;
+  }
+
+  #workPage .attention-work-panel .work-card,
+  #workPage .activity-item {
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+
+  #workPage .activity-feed::before,
+  #workPage .activity-item::before {
+    display: none;
+  }
+
+  #workPage .activity-item strong,
+  #workPage .activity-item span,
+  #workPage .activity-item small {
+    grid-column: auto;
+  }
+}
+
+/* Documentation workspace: navigator + spacious document + tabbed context tools. */
+#docsPage {
+  padding: clamp(22px, 2.6vw, 42px);
+}
+
+#docsPage .docs-page-head,
+#docsPage .docs-shell {
+  max-width: 1500px;
+}
+
+#docsPage .docs-page-head {
+  margin-bottom: 24px;
+}
+
+#docsPage .docs-shell {
+  display: grid;
+  grid-template-columns: minmax(260px, 310px) minmax(640px, 1fr) minmax(280px, 330px);
+  gap: 18px;
+  align-items: start;
+  margin: 0 auto;
+}
+
+#docsPage .docs-sidebar,
+#docsPage .docs-side-panel {
+  position: sticky;
+  top: 54px;
+  max-height: calc(100vh - 82px);
+  overflow: auto;
+}
+
+#docsPage .docs-sidebar,
+#docsPage .docs-side-panel,
+#docsPage .docs-editor-panel {
+  border-radius: 24px;
+  border-color: rgba(20, 20, 20, 0.05);
+  box-shadow: 0 16px 38px rgba(24, 24, 24, 0.05), 0 2px 8px rgba(24, 24, 24, 0.03);
+}
+
+#docsPage .docs-sidebar,
+#docsPage .docs-side-panel {
+  padding: 18px;
+}
+
+#docsPage .docs-editor-panel {
+  min-height: 680px;
+  padding: clamp(26px, 3vw, 48px);
+}
+
+#docsPage .docs-sidebar .panel-head,
+#docsPage .docs-side-panel .panel-head {
+  align-items: center;
+  padding-bottom: 12px;
+}
+
+#docsPage .docs-search-field {
+  margin-bottom: 12px;
+}
+
+#docsPage .docs-search-field input,
+#docsPage .docs-sidebar select,
+#docsPage .docs-side-panel input {
+  min-height: 40px;
+  border-radius: 14px;
+  background: #f7f7f6;
+  padding: 0 12px;
+}
+
+#docsPage .docs-block-list {
+  gap: 7px;
+  margin-top: 12px;
+}
+
+#docsPage .doc-block-row {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: transparent;
+  padding: 11px 12px 11px 14px;
+}
+
+#docsPage .doc-block-row::before {
+  display: none;
+}
+
+#docsPage .doc-block-row::after {
+  content: "";
+  position: absolute;
+  top: 13px;
+  bottom: 13px;
+  left: 0;
+  width: 3px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+#docsPage .doc-block-row.active,
+#docsPage .doc-block-row:hover {
+  background: #f4f4f2;
+}
+
+#docsPage .doc-block-row.active {
+  border-color: rgba(20, 20, 20, 0.055);
+  box-shadow: 0 8px 18px rgba(24, 24, 24, 0.04);
+}
+
+#docsPage .doc-block-row.active::after {
+  background: #111;
+}
+
+#docsPage .doc-block-row strong {
+  font-size: 0.93rem;
+  line-height: 1.22;
+}
+
+#docsPage .doc-block-row span,
+#docsPage .doc-block-row small {
+  line-height: 1.2;
+}
+
+#docsPage .docs-title-row {
+  align-items: start;
+  gap: 18px;
+  padding-bottom: 10px;
+}
+
+#docsPage .docs-title-row h2 {
+  max-width: 850px;
+  margin-top: 14px;
+  color: #171717;
+  font-size: clamp(2.25rem, 4vw, 4.25rem);
+  line-height: 1.02;
+  overflow-wrap: anywhere;
+}
+
+#docsPage #docsBackToMapBtn {
+  min-width: 118px;
+  min-height: 36px;
+  border-radius: 999px;
+  background: white;
+  box-shadow: 0 8px 18px rgba(22, 22, 22, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+#docsPage .docs-meta {
+  margin: 8px 0 8px;
+}
+
+#docsPage .docs-meta span,
+#docsPage .stale-chip {
+  border-radius: 999px;
+  background: #f3f3f1;
+}
+
+#docsPage .docs-save-state {
+  margin: 0 0 20px;
+  color: #85827d;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+#docsPage .docs-editor-grid {
+  gap: 18px;
+}
+
+#docsPage .docs-editor-grid label {
+  display: grid;
+  gap: 8px;
+  color: #676f7d;
+  font-size: 0.84rem;
+  font-weight: 750;
+}
+
+#docsPage .docs-editor-grid textarea {
+  width: 100%;
+  border: 1px solid rgba(20, 20, 20, 0.055);
+  border-radius: 18px;
+  background: #fbfbfa;
+  color: #2f3437;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  line-height: 1.55;
+  padding: 16px 18px;
+}
+
+#docsPage #docsSummary {
+  min-height: 132px;
+  font-size: 1rem;
+}
+
+#docsPage #docsBody {
+  min-height: 420px;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+#docsPage .docs-tool-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+#docsPage .docs-tool-tab {
+  min-height: 38px;
+  border: 1px solid rgba(20, 20, 20, 0.06);
+  border-radius: 999px;
+  background: white;
+  color: #666f7c;
+  box-shadow: 0 7px 16px rgba(22, 22, 22, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  font-weight: 750;
+  padding: 0 10px;
+}
+
+#docsPage .docs-tool-tab span {
+  display: inline-grid;
+  min-width: 20px;
+  min-height: 20px;
+  place-items: center;
+  margin-left: 4px;
+  border-radius: 999px;
+  background: #f3f3f1;
+  color: #5f6877;
+  font-size: 0.75rem;
+}
+
+#docsPage .docs-tool-tab.active {
+  border-color: #151515;
+  background: #151515;
+  color: white;
+}
+
+#docsPage .docs-tool-tab.active span {
+  background: rgba(255, 255, 255, 0.14);
+  color: white;
+}
+
+#docsPage .docs-tool-panel.is-hidden {
+  display: none;
+}
+
+#docsPage .docs-tool-panel {
+  display: grid;
+  gap: 14px;
+}
+
+#docsPage .compact-form {
+  display: grid;
+  gap: 10px;
+}
+
+#docsPage .docs-side-panel .button {
+  min-height: 36px;
+  border-radius: 999px;
+}
+
+#docsPage .doc-list {
+  gap: 8px;
+}
+
+#docsPage .doc-list-item {
+  border-radius: 14px;
+  border-color: rgba(20, 20, 20, 0.06);
+  background: rgba(255, 255, 255, 0.84);
+  padding: 11px 12px;
+}
+
+#docsPage .empty-card {
+  border-radius: 14px;
+  padding: 13px;
+}
+
+@media (max-width: 1380px) {
+  #docsPage .docs-shell {
+    grid-template-columns: minmax(220px, 270px) minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  #docsPage .docs-side-panel {
+    grid-column: 2;
+    position: static;
+    max-height: none;
+  }
+}
+
+@media (max-width: 980px) {
+  #docsPage .docs-shell {
+    grid-template-columns: 1fr;
+  }
+
+  #docsPage .docs-sidebar,
+  #docsPage .docs-side-panel {
+    position: static;
+    max-height: none;
+  }
+}
+
+/* Documentation refinement: clearer hierarchy and scalable navigator. */
+#docsPage .docs-sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(120, 120, 116, 0.28) transparent;
+}
+
+#docsPage .docs-sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+#docsPage .docs-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#docsPage .docs-sidebar::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(120, 120, 116, 0.26);
+  background-clip: content-box;
+}
+
+#docsPage .docs-filter-field {
+  margin: 0 0 12px;
+}
+
+#docsPage .docs-filter-field select {
+  width: 100%;
+  min-height: 40px;
+  border-radius: 14px;
+  border-color: transparent;
+  background: #f7f7f6;
+  color: #4f5867;
+  padding: 0 12px;
+}
+
+#docsPage .doc-block-row {
+  min-height: 74px;
+  padding: 13px 12px 13px 16px;
+}
+
+#docsPage .doc-block-row.active {
+  border-color: rgba(20, 20, 20, 0.075);
+  background: linear-gradient(90deg, #f1f1ef, #fafafa 70%);
+  box-shadow: 0 10px 22px rgba(24, 24, 24, 0.055);
+}
+
+#docsPage .doc-block-row.active strong {
+  color: #111;
+  font-weight: 800;
+}
+
+#docsPage .doc-block-row.active::after {
+  left: 0;
+  width: 4px;
+  background: #171717;
+}
+
+#docsPage .docs-title-row {
+  padding-bottom: 6px;
+}
+
+#docsPage .docs-title-row h2 {
+  max-width: 780px;
+  margin-top: 12px;
+  font-size: clamp(2rem, 3.35vw, 3.55rem);
+  line-height: 1.06;
+}
+
+#docsPage .docs-meta {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+#docsPage .docs-save-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  margin: 0 0 22px;
+  color: #747b86;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+#docsPage .docs-save-state::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #7ccf8a;
+  box-shadow: 0 0 0 3px rgba(124, 207, 138, 0.14);
+}
+
+#docsPage .docs-editor-grid {
+  gap: 22px;
+}
+
+#docsPage .docs-editor-grid label {
+  gap: 10px;
+  color: #535d6b;
+}
+
+#docsPage .docs-editor-grid textarea {
+  border-color: rgba(20, 20, 20, 0.065);
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fdfdfc, #fafaf9);
+  padding: 18px 20px;
+}
+
+#docsPage .docs-editor-grid textarea::placeholder {
+  color: #8d96a5;
+}
+
+#docsPage .docs-editor-grid textarea:focus {
+  border-color: rgba(20, 20, 20, 0.18);
+  background: white;
+  box-shadow: 0 0 0 4px rgba(20, 20, 20, 0.045);
+}
+
+#docsPage #docsSummary {
+  min-height: 118px;
+}
+
+#docsPage #docsBody {
+  min-height: 500px;
+  line-height: 1.7;
+}
+
+#docsPage .docs-side-panel {
+  top: 54px;
+}
+
+#docsPage .docs-tool-tabs {
+  gap: 7px;
+}
+
+#docsPage .docs-tool-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  line-height: 1;
+}

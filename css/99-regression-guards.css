@@ -1,0 +1,259 @@
+/* Split from styles.css - emergency restore and regression guards */
+  fill: #fff8e6;
+  stroke: #c99200;
+  stroke-width: 2;
+}
+
+.graph-node.connect-target .connect-handle.input {
+  fill: #ffffff;
+  stroke: rgba(20, 20, 20, 0.32);
+  stroke-width: 2;
+}
+
+/* Emergency restore: reassert the soft SaaS shell after experimental dropdown rules. */
+body,
+body[data-theme="dark"] {
+  background: #e7e7e5;
+  color: #0f0f0f;
+}
+
+body::before {
+  content: "";
+  position: absolute;
+  top: 42px;
+  right: 44px;
+  bottom: 42px;
+  left: 44px;
+  min-height: calc(100vh - 84px);
+  z-index: 0;
+  border-radius: 28px;
+  background: linear-gradient(90deg, #f0f0ef 0 210px, #f6f6f5 210px 100%);
+  box-shadow: 0 24px 70px rgba(18, 18, 18, 0.085), 0 2px 10px rgba(18, 18, 18, 0.035);
+  pointer-events: none;
+}
+
+.jira-sidebar,
+body[data-theme="dark"] .jira-sidebar {
+  position: fixed;
+  top: 42px;
+  bottom: 42px;
+  left: 44px;
+  z-index: 40;
+  width: 210px;
+  padding: 30px 14px;
+  border: 0;
+  border-radius: 28px 0 0 28px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.graph-app,
+body[data-theme="dark"] .graph-app {
+  position: relative;
+  z-index: 1;
+  width: auto;
+  min-height: calc(100vh - 84px);
+  margin: 42px 44px 42px 254px;
+  padding: 42px 32px 30px 36px;
+  border-radius: 0 28px 28px 0;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.jira-topnav,
+body[data-theme="dark"] .jira-topnav {
+  position: absolute;
+  top: 54px;
+  right: 66px;
+  left: auto;
+  z-index: 50;
+  width: min(680px, calc(100vw - 600px));
+  min-width: 320px;
+  max-width: calc(100vw - 580px);
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.jira-topnav .global-search {
+  width: 100%;
+  min-width: 0;
+  max-width: 420px;
+  justify-self: stretch;
+}
+
+.jira-topnav .global-search input {
+  width: 100%;
+}
+
+.topbar,
+body[data-theme="dark"] .topbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 10px 18px;
+  align-items: start;
+  min-height: 48px;
+  margin: 0 0 16px;
+  padding-right: min(720px, 44vw);
+  border: 0;
+  background: transparent;
+}
+
+h1,
+body[data-theme="dark"] h1 {
+  color: #0f0f0f;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.command-bar label,
+.command-bar .metric,
+.canvas-panel,
+.inspector-panel,
+.detail-panel,
+.setup-panel,
+.setup-hero,
+.hierarchy-strip article,
+.entity-card,
+.data-grid,
+.links-panel,
+#docsPage,
+#workPage,
+#docsPage .panel,
+#workPage .panel,
+#workPage .command-bar label,
+#workPage .command-bar .metric {
+  border: 1px solid rgba(20, 20, 20, 0.045);
+  border-radius: 24px;
+  background: #ffffff;
+  color: #0f0f0f;
+  box-shadow: 0 16px 38px rgba(24, 24, 24, 0.055), 0 2px 8px rgba(24, 24, 24, 0.035);
+}
+
+.button,
+.icon-button,
+.nav-icon {
+  border: 1px solid rgba(20, 20, 20, 0.075);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #20283a;
+  box-shadow: 0 9px 22px rgba(22, 22, 22, 0.065), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+#focusCampaignBtn {
+  border-color: #151515;
+  background: #151515;
+  color: #fff;
+}
+
+.canvas-panel,
+.inspector-panel {
+  overflow: hidden;
+  border-radius: 26px;
+}
+
+.primary-graph {
+  background: #fdfdfc;
+}
+
+select {
+  border: 1px solid rgba(20, 20, 20, 0.12);
+  border-radius: 14px;
+  background: #fbfbfa;
+  color: #0f0f0f;
+  box-shadow: none;
+}
+
+/* Regression guard: keep the restored soft shell from collapsing at app widths. */
+.topbar,
+body[data-theme="dark"] .topbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: start;
+  gap: 10px 18px;
+  min-height: 48px;
+  margin: 0 0 16px;
+  padding-right: min(720px, 44vw);
+}
+
+.topbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  max-width: min(620px, 100%);
+  margin-top: 0;
+}
+
+#mapPage > .command-bar {
+  grid-template-columns:
+    minmax(190px, 1.4fr)
+    minmax(190px, 1.4fr)
+    minmax(96px, 0.7fr)
+    minmax(126px, 0.8fr)
+    minmax(88px, 0.55fr)
+    minmax(150px, 0.9fr)
+    minmax(150px, 0.9fr);
+}
+
+#mapPage > .command-bar #focusCampaignBtn,
+#mapPage > .command-bar #connectModeBtn,
+#mapPage > .command-bar #mapFocusModeCommandBtn {
+  min-width: 150px;
+  white-space: nowrap;
+}
+
+@media (max-width: 1360px) {
+  .jira-topnav,
+  body[data-theme="dark"] .jira-topnav {
+    left: auto;
+    width: min(520px, calc(100vw - 610px));
+    min-width: 0;
+    max-width: calc(100vw - 320px);
+  }
+
+  .topbar,
+  body[data-theme="dark"] .topbar {
+    grid-template-columns: minmax(0, 1fr);
+    padding-right: min(560px, 40vw);
+  }
+
+  .topbar-actions {
+    justify-content: flex-start;
+    max-width: min(560px, 100%);
+  }
+
+  #mapPage > .command-bar {
+    grid-template-columns: repeat(3, minmax(170px, 1fr));
+    grid-template-rows: auto;
+  }
+
+  #mapPage > .command-bar > label,
+  #mapPage > .command-bar > .metric,
+  #mapPage > .command-bar #focusCampaignBtn,
+  #mapPage > .command-bar #connectModeBtn,
+  #mapPage > .command-bar #mapFocusModeCommandBtn {
+    grid-column: auto;
+    grid-row: auto;
+    min-height: 96px;
+    height: auto;
+  }
+
+  #mapPage > .command-bar #focusCampaignBtn,
+  #mapPage > .command-bar #connectModeBtn,
+  #mapPage > .command-bar #mapFocusModeCommandBtn {
+    min-height: 46px;
+    height: 46px;
+    align-self: center;
+  }
+}
+

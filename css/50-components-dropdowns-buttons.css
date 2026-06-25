@@ -1,0 +1,389 @@
+/* Split from styles.css - custom dropdowns and dependency node components */
+
+#docsPage .docs-tool-tab span {
+  font-weight: 800;
+}
+
+#docsPage .docs-tool-panel .empty-card {
+  color: #7c8490;
+  background: #fafaf9;
+}
+
+/* Custom themed dropdowns: replaces native opened select menus. */
+.native-select-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.custom-select {
+  position: relative;
+  width: 100%;
+  inline-size: 100%;
+  min-width: 0;
+  z-index: 20;
+}
+
+.custom-select.is-open {
+  z-index: 1000;
+}
+
+.custom-select-trigger {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(20, 20, 20, 0.075);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #182033;
+  box-shadow: 0 8px 20px rgba(22, 22, 22, 0.045), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 650;
+  line-height: 1.2;
+  padding: 0 13px 0 15px;
+  text-align: left;
+}
+
+.custom-select-trigger:hover,
+.custom-select-trigger:focus-visible {
+  border-color: rgba(20, 20, 20, 0.14);
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(22, 22, 22, 0.065), 0 0 0 4px rgba(20, 20, 20, 0.035);
+  outline: none;
+}
+
+.custom-select-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-select-chevron {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+}
+
+.custom-select-chevron::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid #313846;
+  border-bottom: 2px solid #313846;
+  transform: rotate(45deg);
+  transition: transform 0.16s ease, top 0.16s ease;
+}
+
+.custom-select.is-open .custom-select-chevron::before {
+  top: 7px;
+  transform: rotate(225deg);
+}
+
+.custom-select-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  display: none;
+  max-height: min(320px, 45vh);
+  overflow: auto;
+  border: 1px solid rgba(20, 20, 20, 0.065);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 42px rgba(18, 18, 18, 0.12), 0 2px 8px rgba(18, 18, 18, 0.04);
+  padding: 8px;
+}
+
+.custom-select.is-open .custom-select-menu {
+  display: grid;
+  gap: 3px;
+}
+
+.custom-select-option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18px;
+  align-items: center;
+  width: 100%;
+  min-height: 38px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: #222b3c;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 620;
+  line-height: 1.25;
+  padding: 9px 10px;
+  text-align: left;
+}
+
+.custom-select-option span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-select-option:hover,
+.custom-select-option:focus-visible {
+  background: #f3f3f1;
+  outline: none;
+}
+
+.custom-select-option.is-selected {
+  background: #eef2f4;
+  color: #111827;
+  font-weight: 800;
+}
+
+.custom-select-option.is-selected::after {
+  content: "";
+  justify-self: center;
+  width: 8px;
+  height: 12px;
+  border-right: 2px solid #273244;
+  border-bottom: 2px solid #273244;
+  transform: rotate(45deg) translateY(-1px);
+}
+
+.custom-select-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.custom-select-menu {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(120, 120, 116, 0.28) transparent;
+}
+
+.custom-select-menu::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-select-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-select-menu::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(120, 120, 116, 0.28);
+  background-clip: content-box;
+}
+
+.canvas-toolbar .custom-select-trigger,
+.map-tools .custom-select-trigger,
+#workPage .work-section-actions .custom-select-trigger,
+#docsPage .docs-sidebar .custom-select-trigger {
+  border-radius: 999px;
+}
+
+.canvas-toolbar .custom-select,
+.work-section-actions .custom-select {
+  min-width: 142px;
+}
+
+.two-col .custom-select,
+.rule-form .custom-select {
+  min-width: 0;
+}
+
+.custom-select.is-disabled {
+  opacity: 0.62;
+}
+
+label > .custom-select,
+.command-bar label > .custom-select,
+.canvas-toolbar label > .custom-select,
+.stack-form label > .custom-select,
+.rule-form label > .custom-select,
+.docs-sidebar label > .custom-select,
+.work-section-actions > .custom-select {
+  width: 100%;
+  min-width: 0;
+  align-self: stretch;
+}
+
+.project-control .custom-select,
+.campaign-control .custom-select {
+  width: 100%;
+}
+
+/* Dependency map node redesign - soft SaaS cards with top-accent status */
+.graph-node .node-body {
+  fill: #ffffff;
+  stroke: rgba(20, 20, 20, 0.08);
+  stroke-width: 1;
+  rx: 16;
+  ry: 16;
+  filter: drop-shadow(0 6px 16px rgba(20, 20, 20, 0.05)) drop-shadow(0 1px 3px rgba(20, 20, 20, 0.04));
+}
+
+.graph-node:hover .node-body {
+  stroke: rgba(20, 20, 20, 0.14);
+  filter: drop-shadow(0 10px 22px rgba(20, 20, 20, 0.07)) drop-shadow(0 2px 5px rgba(20, 20, 20, 0.05));
+}
+
+.graph-node .node-accent {
+  stroke: none;
+  pointer-events: none;
+  y: 0;
+  x: 0;
+  height: 3.5;
+}
+
+.graph-node.status-ready .node-accent {
+  fill: #5ecf7a;
+}
+
+.graph-node.status-in-progress .node-accent,
+.graph-node.status-needs-review .node-accent {
+  fill: #7aabee;
+}
+
+.graph-node.status-blocked .node-accent {
+  fill: #e8877a;
+}
+
+.graph-node.status-not-started .node-accent,
+.graph-node.status-unknown .node-accent {
+  fill: #e0a898;
+}
+
+.graph-node .node-type-chip {
+  fill: #f5f5f3;
+  stroke: rgba(20, 20, 20, 0.06);
+  stroke-width: 0.75;
+}
+
+.graph-node .node-type {
+  fill: #6f6f6b;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  dominant-baseline: auto;
+}
+
+.graph-node .node-title {
+  fill: #0f0f0f;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.graph-node .meta {
+  fill: #6f6f6b;
+  font-size: 10.5px;
+  font-weight: 500;
+}
+
+.graph-node .node-count {
+  fill: #a4a4a0;
+  font-size: 10px;
+  font-weight: 600;
+  text-anchor: end;
+  dominant-baseline: auto;
+}
+
+.graph-node .status-dot {
+  stroke: none;
+}
+
+.graph-node.status-ready .status-dot {
+  fill: #5ecf7a;
+}
+
+.graph-node.status-in-progress .status-dot,
+.graph-node.status-needs-review .status-dot {
+  fill: #7aabee;
+}
+
+.graph-node.status-blocked .status-dot {
+  fill: #e8877a;
+}
+
+.graph-node.status-not-started .status-dot,
+.graph-node.status-unknown .status-dot {
+  fill: #d89588;
+}
+
+.graph-node.selected .node-body {
+  stroke: rgba(20, 20, 20, 0.72);
+  stroke-width: 1.8;
+  filter: drop-shadow(0 12px 26px rgba(20, 20, 20, 0.09)) drop-shadow(0 2px 6px rgba(20, 20, 20, 0.06));
+}
+
+.graph-node.connect-source .node-body {
+  stroke: #d4a017;
+  stroke-width: 2;
+}
+
+.graph-node.connect-target .node-body {
+  stroke: rgba(20, 20, 20, 0.22);
+  stroke-width: 1.4;
+}
+
+.graph-node.ready .node-body,
+.graph-node.blocker .node-body,
+.graph-node.campaign .node-body,
+.graph-node.project .node-body,
+.graph-node.hardware .node-body,
+.graph-node.test .node-body,
+.graph-node.document .node-body,
+.graph-node.review .node-body,
+.graph-node.task .node-body,
+.graph-node.person-team .node-body {
+  stroke: rgba(20, 20, 20, 0.08);
+  stroke-width: 1;
+}
+
+.graph-node.ready rect:first-child,
+.graph-node.blocker rect:first-child,
+.graph-node.campaign rect:first-child,
+.graph-node.project rect:first-child,
+.graph-node.hardware rect:first-child,
+.graph-node.test rect:first-child,
+.graph-node.document rect:first-child,
+.graph-node.review rect:first-child,
+.graph-node.task rect:first-child,
+.graph-node.person-team rect:first-child {
+  stroke: rgba(20, 20, 20, 0.08);
+  stroke-width: 1;
+}
+
+.graph-node .status-rail {
+  display: none;
+}
+
+.graph-node .connect-handle {
+  fill: #ffffff;
+  stroke: rgba(20, 20, 20, 0.16);
+  stroke-width: 1.5;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.graph-node:hover .connect-handle,
+.graph-node.selected .connect-handle,
+.graph-node.connect-source .connect-handle,
+.graph-node.connect-target .connect-handle {
+  opacity: 1;
+}
+
+.graph-node.connect-source .connect-handle.output {
