@@ -120,6 +120,10 @@ function normalizeRevisionEvents(raw = []) {
   }));
 }
 
+function extractMentions(value = "") {
+  return Array.from(new Set(String(value).match(/@[A-Za-z0-9_.-]+/g) || []));
+}
+
 function normalizeRevisions(raw = [], blockId = 0) {
   if (!Array.isArray(raw)) return [];
   return raw.map((entry, index) => ({
@@ -268,7 +272,8 @@ function emptyDocumentation() {
     body: "",
     links: [],
     updates: [],
-    actionItems: []
+    actionItems: [],
+    comments: []
   };
 }
 
@@ -294,7 +299,14 @@ function normalizeDocumentation(docs = {}) {
       done: Boolean(action.done),
       createdAt: action.createdAt || new Date().toISOString(),
       completedAt: action.completedAt || ""
-    })).filter((action) => action.text) : []
+    })).filter((action) => action.text) : [],
+    comments: Array.isArray(docs.comments) ? docs.comments.map((comment, index) => ({
+      id: Number(comment.id) || Date.now() + index,
+      text: String(comment.text || ""),
+      author: String(comment.author || ""),
+      mentions: Array.isArray(comment.mentions) ? comment.mentions.map(String) : extractMentions(comment.text || ""),
+      createdAt: comment.createdAt || new Date().toISOString()
+    })).filter((comment) => comment.text) : []
   };
 }
 

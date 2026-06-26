@@ -288,6 +288,7 @@ function renderDocumentationPage() {
   const actionList = document.getElementById("docActionList");
   const linkList = document.getElementById("docLinkList");
   const updateList = document.getElementById("docUpdateList");
+  const commentList = document.getElementById("docCommentList");
   const revisionCurrent = document.getElementById("docRevisionCurrent");
   const revisionActions = document.getElementById("docRevisionActions");
   const revisionHistory = document.getElementById("docRevisionHistory");
@@ -302,10 +303,13 @@ function renderDocumentationPage() {
     actionList.innerHTML = "";
     linkList.innerHTML = "";
     updateList.innerHTML = "";
+    if (commentList) commentList.innerHTML = "";
     if (revisionCurrent) revisionCurrent.innerHTML = "";
     if (revisionActions) revisionActions.innerHTML = "";
     if (revisionHistory) revisionHistory.innerHTML = "";
     if (revisionCount) revisionCount.textContent = "0";
+    const commentCount = document.getElementById("docsCommentCount");
+    if (commentCount) commentCount.textContent = "0";
     return;
   }
 
@@ -323,6 +327,8 @@ function renderDocumentationPage() {
   document.getElementById("docsActionCount").textContent = openActions.length;
   document.getElementById("docsLinkCount").textContent = docs.links.length;
   document.getElementById("docsUpdateCount").textContent = docs.updates.length;
+  const commentCount = document.getElementById("docsCommentCount");
+  if (commentCount) commentCount.textContent = docs.comments.length;
   if (revisionCount) revisionCount.textContent = revisions.length;
   const savedState = document.getElementById("docsSaveState");
   if (savedState) savedState.textContent = `Saved - Last updated ${formatDate(item.updatedAt || item.createdAt)}`;
@@ -378,6 +384,22 @@ function renderDocumentationPage() {
     `).join("")
     : `<div class="empty-card">No updates yet.</div>`;
 
+  if (commentList) {
+    commentList.innerHTML = docs.comments.length
+      ? docs.comments.map((comment) => `
+        <article class="doc-list-item comment-item">
+          <div>
+            <strong>${escapeHtml(comment.author || "You")}</strong>
+            <small>${formatDateTime(comment.createdAt)}</small>
+            <p>${highlightMentions(comment.text)}</p>
+            ${comment.mentions.length ? `<span class="comment-mentions">${comment.mentions.map((mention) => `<b>${escapeHtml(mention)}</b>`).join("")}</span>` : ""}
+          </div>
+          <button class="row-action" type="button" data-delete-doc-comment="${comment.id}">Delete</button>
+        </article>
+      `).join("")
+      : `<div class="empty-card">No comments yet. Mention teammates with @name.</div>`;
+  }
+
   if (revisionCurrent) revisionCurrent.innerHTML = renderRevisionCurrentCard(item);
   if (revisionActions) revisionActions.innerHTML = renderRevisionActions(item);
   if (revisionHistory) revisionHistory.innerHTML = renderRevisionHistory(item);
@@ -405,6 +427,17 @@ function renderWorkPage() {
   const ownedOpen = scoped.filter((item) => !readyStatuses.has(item.status));
   const openActions = scoped.flatMap((item) => ensureDocumentation(item).actionItems.filter((action) => !action.done).map((action) => ({ item, action })));
   const stale = scoped.filter((item) => isStale(item) || item.status === "Blocked");
+  const reviewQueue = objects
+    .map((item) => ({ item, revision: getCurrentRevision(item) }))
+    .filter(({ item, revision }) => {
+      if (!revision || !["In Review", "Changes Requested", "Approved"].includes(revision.status)) return false;
+      if (revision.status === "Approved" && daysSince(revision.updatedAt || revision.approvedAt || revision.createdAt) > 14) return false;
+      if (activeWorkOwner === "all") return true;
+      return [item.owner, revision.reviewerName, revision.createdBy, revision.submittedBy, revision.decidedBy]
+        .filter(Boolean)
+        .some((name) => name === activeWorkOwner || String(name).includes(activeWorkOwner));
+    })
+    .sort((a, b) => new Date(b.revision.updatedAt || b.item.updatedAt || b.item.createdAt) - new Date(a.revision.updatedAt || a.item.updatedAt || a.item.createdAt));
   const visibleOwned = scoped
     .filter((item) => activeWorkStatus === "all" || item.status === activeWorkStatus)
     .sort((a, b) => {
@@ -426,6 +459,15 @@ function renderWorkPage() {
   document.getElementById("staleWorkList").innerHTML = stale.length
     ? stale.map((item) => workCard(item, true)).join("")
     : `<div class="empty-card">Nothing stale or blocked for this view.</div>`;
+
+  const reviewQueueCount = document.getElementById("reviewQueueCount");
+  if (reviewQueueCount) reviewQueueCount.textContent = `${reviewQueue.length} review${reviewQueue.length === 1 ? "" : "s"}`;
+  const reviewQueueList = document.getElementById("reviewQueueList");
+  if (reviewQueueList) {
+    reviewQueueList.innerHTML = reviewQueue.length
+      ? reviewQueue.map(({ item, revision }) => reviewQueueCard(item, revision)).join("")
+      : `<div class="empty-card">No active revision reviews for this view.</div>`;
+  }
 
   const activity = Array.isArray(state.activity) ? state.activity.slice(0, 40) : [];
   document.getElementById("activityCount").textContent = `${activity.length} event${activity.length === 1 ? "" : "s"}`;
@@ -456,6 +498,27 @@ function workCard(item, attention = false) {
         <div><dt>Actions</dt><dd>${openActions}</dd></div>
       </dl>
       <button class="button secondary" type="button" data-open-doc="${item.id}">Open docs</button>
+    </article>
+  `;
+}
+
+function reviewQueueCard(item, revision) {
+  const statusText = revision.status === "In Review" ? "Needs review"
+    : revision.status === "Changes Requested" ? "Changes requested"
+    : "Approved";
+  return `
+    <article class="work-card review-card">
+      <div>
+        <span class="lozenge ${revisionStatusClass(revision.status)}">${escapeHtml(statusText)}</span>
+        <h3>${escapeHtml(item.name)}</h3>
+        <p>${escapeHtml(revision.label)} - ${escapeHtml(revision.reviewerName || "Reviewer unassigned")}</p>
+      </div>
+      <dl>
+        <div><dt>Submitted</dt><dd>${formatDate(revision.submittedAt || revision.updatedAt || revision.createdAt)}</dd></div>
+        <div><dt>Owner</dt><dd>${escapeHtml(item.owner || "Unassigned")}</dd></div>
+        <div><dt>Decision</dt><dd>${escapeHtml(revision.decision || "Pending")}</dd></div>
+      </dl>
+      <button class="button secondary" type="button" data-open-doc="${item.id}">Open review</button>
     </article>
   `;
 }

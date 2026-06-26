@@ -209,6 +209,25 @@
   margin-bottom: 16px;
 }
 
+.revision-decision-note {
+  display: block;
+  margin: 0 0 14px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.revision-decision-note textarea {
+  width: 100%;
+  min-height: 72px;
+  margin-top: 8px;
+  resize: vertical;
+}
+
 .revision-actions .button.danger-soft {
   color: var(--red);
   border-color: rgba(201, 55, 44, 0.25);
@@ -390,4 +409,53 @@
 
 #docsPage .docs-tool-tab span#docsRevisionCount {
   min-width: 1.2em;
+}
+
+.comment-item p {
+  margin: 6px 0 0;
+  white-space: pre-wrap;
+  line-height: 1.45;
+}
+
+.comment-item small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.76rem;
+  margin-top: 2px;
+}
+
+.mention-chip,
+.comment-mentions b {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(12, 102, 228, 0.08);
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.comment-mentions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+#workPage .review-work-panel {
+  grid-column: 1 / -1;
+}
+
+#workPage .review-queue-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 14px;
+}
+
+#workPage .review-card {
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-alt) 100%);
+}
+
+#workPage .review-card h3 {
+  margin-top: 8px;
 }

@@ -87,6 +87,28 @@ document.addEventListener("submit", (event) => {
     return;
   }
 
+  if (form?.id === "docCommentForm") {
+    const item = byId(activeDocsObjectId);
+    const text = document.getElementById("docCommentText")?.value.trim();
+    if (!item || !text) return;
+    const docs = ensureDocumentation(item);
+    rememberState();
+    docs.comments.unshift({
+      id: nextDocId(docs.comments),
+      text,
+      author: currentActor(),
+      mentions: extractMentions(text),
+      createdAt: new Date().toISOString()
+    });
+    touchObject(item);
+    logActivity(item.id, "Comment added", text);
+    saveState();
+    form.reset();
+    activeDocToolTab = "comments";
+    renderAll();
+    return;
+  }
+
   if (form?.id === "docNewRevisionForm") {
     const item = byId(activeDocsObjectId);
     const label = document.getElementById("docRevisionLabel")?.value.trim();
@@ -802,6 +824,20 @@ document.addEventListener("click", (event) => {
     return;
   }
 
+  if (event.target.matches("[data-delete-doc-comment]")) {
+    const item = byId(activeDocsObjectId);
+    if (!item) return;
+    const docs = ensureDocumentation(item);
+    const comment = docs.comments.find((entry) => entry.id === Number(event.target.dataset.deleteDocComment));
+    rememberState();
+    docs.comments = docs.comments.filter((entry) => entry.id !== Number(event.target.dataset.deleteDocComment));
+    touchObject(item);
+    logActivity(item.id, "Comment deleted", comment?.text || "");
+    saveState();
+    renderAll();
+    return;
+  }
+
   const revisionButton = event.target.closest("[data-revision-action]");
   if (revisionButton) {
     const item = byId(activeDocsObjectId);
@@ -812,6 +848,8 @@ document.addEventListener("click", (event) => {
     if (!rev) return;
     const reviewerInput = document.getElementById("docRevisionReviewer");
     const reviewerRaw = reviewerInput?.value.trim() || "";
+    const decisionNoteInput = document.getElementById("docRevisionDecisionNote");
+    const decisionNote = decisionNoteInput?.value.trim() || "";
     const submitter = currentActor();
     const decider = reviewerRaw || rev.reviewerName || currentActor();
 
@@ -831,15 +869,15 @@ document.addEventListener("click", (event) => {
       detail = wasChangesRequested ? "Resubmitted for review" : "Submitted for review";
     } else if (action === "approve" && rev.status === "In Review") {
       rememberState();
-      ok = approveRevision(item, revisionId, decider);
+      ok = approveRevision(item, revisionId, decider, decisionNote);
       detail = "Approved";
     } else if (action === "changes" && rev.status === "In Review") {
       rememberState();
-      ok = requestRevisionChanges(item, revisionId, decider);
+      ok = requestRevisionChanges(item, revisionId, decider, decisionNote);
       detail = "Changes requested";
     } else if (action === "reject" && rev.status === "In Review") {
       rememberState();
-      ok = rejectRevision(item, revisionId, decider);
+      ok = rejectRevision(item, revisionId, decider, decisionNote);
       detail = "Rejected";
     } else if (action === "release" && ["Approved", "Released"].includes(rev.status)) {
       rememberState();
@@ -851,6 +889,7 @@ document.addEventListener("click", (event) => {
     }
     if (!ok) return;
     logActivity(item.id, "Revision updated", `${rev.label}: ${detail}`);
+    if (decisionNoteInput) decisionNoteInput.value = "";
     saveState();
     renderAll();
     return;

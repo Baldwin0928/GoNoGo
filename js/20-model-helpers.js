@@ -73,6 +73,10 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+function highlightMentions(value) {
+  return escapeHtml(value).replace(/(@[A-Za-z0-9_.-]+)/g, `<span class="mention-chip">$1</span>`);
+}
+
 function nextId(items) {
   return items.reduce((max, item) => Math.max(max, item.id), 0) + 1;
 }

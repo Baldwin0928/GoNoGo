@@ -385,6 +385,7 @@
               <button class="docs-tool-tab active" type="button" data-doc-tool-tab="actions">Actions <span id="docsActionCount">0</span></button>
               <button class="docs-tool-tab" type="button" data-doc-tool-tab="links">Links <span id="docsLinkCount">0</span></button>
               <button class="docs-tool-tab" type="button" data-doc-tool-tab="updates">Updates <span id="docsUpdateCount">0</span></button>
+              <button class="docs-tool-tab" type="button" data-doc-tool-tab="comments">Comments <span id="docsCommentCount">0</span></button>
               <button class="docs-tool-tab" type="button" data-doc-tool-tab="revisions">Revisions <span id="docsRevisionCount">0</span></button>
             </div>
 
@@ -413,9 +414,18 @@
               <div id="docUpdateList" class="doc-list"></div>
             </div>
 
+            <div class="docs-tool-panel is-hidden" data-doc-tool-panel="comments">
+              <form class="stack-form compact-form" id="docCommentForm">
+                <label>Comment<textarea id="docCommentText" rows="3" placeholder="@Anyi can you confirm the latest pressure drop assumptions?"></textarea></label>
+                <button class="button secondary" type="submit">Add comment</button>
+              </form>
+              <div id="docCommentList" class="doc-list"></div>
+            </div>
+
             <div class="docs-tool-panel is-hidden" data-doc-tool-panel="revisions">
               <div id="docRevisionCurrent"></div>
               <div id="docRevisionActions"></div>
+              <label class="revision-decision-note">Decision note<textarea id="docRevisionDecisionNote" rows="2" placeholder="Why was this approved, rejected, or sent back?"></textarea></label>
               <form class="stack-form compact-form revision-form" id="docNewRevisionForm">
                 <h3 class="revision-form-title">New revision</h3>
                 <label>Label<input id="docRevisionLabel" placeholder="Rev C" required /></label>
@@ -466,6 +476,13 @@
               <span>Stale or blocked</span>
             </div>
             <div id="staleWorkList" class="work-list"></div>
+          </section>
+          <section class="panel review-work-panel">
+            <div class="panel-head">
+              <h2>Review queue</h2>
+              <span id="reviewQueueCount">0 reviews</span>
+            </div>
+            <div id="reviewQueueList" class="work-list review-queue-list"></div>
           </section>
           <section class="panel owned-work-panel">
             <div class="panel-head">

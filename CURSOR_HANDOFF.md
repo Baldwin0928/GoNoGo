@@ -309,3 +309,139 @@ Potential future backend:
 
 Do not build the online backend yet unless the user explicitly asks. They are currently focused on frontend/UI and local workflow.
 
+---
+
+## Deploy GoNoGo as a shared, cloud-hosted, multi-user readiness workspace.
+
+Context:
+This app is a dependency-first engineering readiness workspace. A dependency map shows blocks such as Projects, Campaigns, Tasks, Tests, and Reviews. Its core value is the recursive readiness verdict: it walks the full dependency tree and rolls anything not `Ready`/`Complete` into a single campaign-level "are we go?" answer. Today the entire app is a no-build static frontend, and all state is a single JSON blob stored in browser `localStorage` under `gtpl-readiness-v1`. There is no backend.
+
+New feature concept:
+The app needs to become a shared, multi-user tool so a team (~15–50 people, mixed technical levels) can all work on the same campaign and see live updates. The readiness verdict (and any future AI) is only trustworthy if owners keep their own blocks current, which is impossible while every person has a private local copy. The end state is a cloud-hosted app reachable at a URL, where everyone signs in and edits one shared board in real time.
+
+Main product rule:
+Do not turn this into "a smaller Jira." Every change must pass one test: does this make the go/no-go answer faster, clearer, or more trustworthy? If not, it is scope creep. Keep the map-first, one-page, no-build feel.
+
+Mental model:
+
+* Block = the work item people depend on
+* Readiness verdict = the product (the thing competitors do not produce)
+* Shared backend = one source of truth so the verdict reflects reality
+* Auth = who is allowed to see/edit, and who changed what
+* Realtime = everyone sees the same board live
+* Local fallback = the app still opens and works if the backend is unreachable
+
+This session was discussion/planning only. No app code was changed (only this handoff was written). Do not start building until the user explicitly greenlights it.
+
+1. Replace localStorage-only persistence with a shared backend.
+
+Adopt Supabase (managed Postgres + Auth + Realtime). Frontend stays static and hosts on Netlify / Vercel / Cloudflare Pages. Keep the no-build approach: load the Supabase client via a script/CDN tag in `index.html`.
+
+2. Start with the shared-blob model, not normalized tables.
+
+First implementation should be the minimal rewrite:
+
+* Store the whole state object as a single row (JSON column) in Supabase, keyed by a shared board id.
+* Rewrite `loadState()` and `saveState()` in `js/10-state-storage.js` to read/write that row instead of (or in addition to) localStorage.
+* Debounce saves to reduce write churn.
+
+Accept last-write-wins for v1. Go/no-go editing is bursty and low-concurrency (owners occasionally update a block; the lead reviews before a gate), so simultaneous-edit collisions are rare and acceptable for now.
+
+Do NOT build normalized per-row tables yet. That is a later upgrade (see step 12), only if real concurrent-edit pain shows up.
+
+3. Add real-time sync.
+
+Subscribe to Supabase Realtime on the shared board row. When a remote change arrives, reload state and call `renderAll()`. Guard against clobbering an in-progress local edit (e.g. skip/merge while the user is actively dragging or typing).
+
+4. Keep a local/offline fallback.
+
+The app should still open and function if Supabase is unreachable:
+
+* Keep localStorage as a cache/fallback store.
+* On load, hydrate from backend when available, otherwise fall back to localStorage seed/state.
+* Never let a network failure produce a blank or broken board.
+
+5. Add authentication.
+
+Use Supabase email magic-link auth (no passwords — important for non-technical teammates).
+
+* Gate the board so it only loads after sign-in.
+* Restrict access to the team's email domain via Row Level Security so only authorized users can read/write the shared board.
+* Sign-in should be one screen: enter work email, click the link, you're in.
+
+6. Stamp edits with user identity.
+
+Record the signed-in user on meaningful mutations (created/updated by + timestamp). This is cheap now and sets up the history/audit log and AI features later. Reuse existing owner/member concepts where possible.
+
+7. Deploy frontend and backend.
+
+* Push the static files to Netlify/Vercel/Cloudflare Pages to get an HTTPS URL.
+* Create the Supabase project, apply RLS, and wire the project URL + anon key into the frontend config.
+* Share the URL with the team.
+
+8. Add a lightweight "ask the board" AI read demo.
+
+This can precede or follow the full backend and is a high-value, low-cost investor demo. At MVP scale the whole board fits in an LLM context window, so no vector DB is needed.
+
+* Serialize the current state (objects, dependencies, statuses, owners) to JSON.
+* Send it to an LLM with a question like "Why are we no-go?" or "What is the critical blocker chain?"
+* Render the plain-English explanation of the blocker chain.
+
+Keep it read-only for the first version (AI explains, does not mutate).
+
+9. Refactor mutations into a clean action/command layer.
+
+This is the single most valuable architectural prep for future AI actions — more than the database choice. Today mutations are tangled inside DOM event handlers in `js/70-forms-events.js`.
+
+* Extract discrete, named functions: `addBlock`, `linkDependency`, `setStatus`, `addSharedBlocker`, `createRevision`, etc.
+* Both the UI and (later) an AI agent call the same action API.
+* Seeds already exist to build on: `connectBlockToTargets`, `addDependencyLink`, `calculateReadiness`.
+
+10. Add an event/history log.
+
+Add an append-only record of meaningful changes (what changed, by whom, when). This directly serves the "trust the verdict" goal — answering "what changed since last review" and "why did readiness flip." Keep it simple: a list of events tied to blocks/board, not full audit tooling.
+
+11. Preserve the current design style.
+
+All new UI (sign-in screen, sync/status indicators, AI panel) must match the existing product styling:
+
+* clean Jira-like light theme + the existing dark mode
+* rounded panels, soft shadows, pill chips, thin borders, muted secondary text
+* calm status colors (blue = selection/focus only; amber = connect-source; red/green = status rails)
+* no dense admin tables, no harsh default browser UI
+* keep the map-first, one-page experience; avoid adding pages
+
+12. Keep it lightweight; do not overbuild.
+
+First implementation priorities, in order:
+
+* shared backend persistence (blob)
+* auth gate + domain restriction
+* realtime sync + local fallback
+* edit stamping
+
+Only after that, and only if needed: normalized per-row tables for true concurrent editing, then Supabase pgvector (semantic search over past campaigns) and Edge Functions (server-side LLM calls) for AI at scale. Do not build these for the investor MVP.
+
+13. Hosting cost reference (current as of 2026-06-26).
+
+50 users is tiny for Supabase (billed on monthly-active-users / DB size / egress, not seats — comically under free limits).
+
+* Free ($0): fully functional, but projects pause after 1 week of inactivity (bad for episodic gate reviews / live demos) and no backups.
+* Pro ($25/mo flat): never pauses, daily backups (7-day), custom domain, email support. Buys reliability, not capacity.
+* Team ($599/mo): SOC2/SSO — ignore until enterprise sales.
+* Frontend hosting stays $0 at this scale.
+
+Recommendation: Free while building; $25/mo Pro once the team relies on it or for scheduled investor demos. Note: GitHub backs up code, not the live data — Supabase backups (or a DIY nightly JSON export) cover the data.
+
+14. Overall desired result.
+
+The team should be able to:
+
+* open one URL and sign in with their work email
+* edit a single shared campaign and see each other's changes live
+* trust that the readiness verdict reflects the current real state
+* keep using the app even if the backend is briefly unreachable
+* (demo) ask the board in plain English why it is no-go
+
+This turns GoNoGo from a single-user local prototype into a shared readiness workspace a real team can depend on, while staying map-first and keeping the door open for AI suggestions and actions.
+
