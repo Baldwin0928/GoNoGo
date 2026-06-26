@@ -115,6 +115,8 @@ function normalizeState(raw) {
     ...raw,
     projects,
     activeProjectId,
+    currentUser: String(raw.currentUser || ""),
+    currentUserEmail: String(raw.currentUserEmail || ""),
     members: Array.isArray(raw.members) ? raw.members : [],
     pings: Array.isArray(raw.pings) ? raw.pings : [],
     activity: Array.isArray(raw.activity) ? raw.activity : [],
@@ -127,6 +129,7 @@ function normalizeState(raw) {
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   updateHistoryButtons();
+  if (typeof queueCloudSave === "function") queueCloudSave();
 }
 
 function touchObject(item) {
@@ -153,6 +156,8 @@ function logActivity(objectId, action, details = "") {
     action,
     details,
     owner: item?.owner || "",
+    actor: typeof currentActor === "function" ? currentActor() : "",
+    actorEmail: state.currentUserEmail || "",
     createdAt: new Date().toISOString()
   });
   state.activity = state.activity.slice(0, 120);

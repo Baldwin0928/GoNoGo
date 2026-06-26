@@ -1,5 +1,11 @@
 // Split from app.js - constants, seed data, object factories, blank board
 const STORAGE_KEY = "gtpl-readiness-v1";
+const SUPABASE_CONFIG = {
+  url: "https://cnqbeyrvegwyiqtfevgo.supabase.co",
+  publishableKey: "sb_publishable_PVGdOyS4EhSL2GuoNcFP_Q_OgNhAB2O",
+  boardId: "gtpl-main",
+  authRequired: true
+};
 
 const objectTypes = ["Project", "Campaign", "Hardware", "Document", "Review", "Task", "Test", "Person/Team"];
 const statuses = ["Not Started", "In Progress", "Blocked", "Ready", "Complete", "Needs Review", "Invalidated", "Unknown"];

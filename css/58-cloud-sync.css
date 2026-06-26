@@ -1,0 +1,111 @@
+/* Cloud auth and shared-board sync UI. */
+.cloud-auth-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.72), transparent 34%),
+    rgba(242, 242, 240, 0.92);
+  backdrop-filter: blur(14px);
+}
+
+.cloud-auth-screen[hidden] {
+  display: none;
+}
+
+.cloud-auth-card {
+  width: min(440px, 100%);
+  display: grid;
+  gap: 14px;
+  padding: 30px;
+  border-radius: 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.14);
+}
+
+.cloud-auth-card h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3rem);
+  letter-spacing: 0;
+}
+
+.cloud-auth-card p,
+.cloud-auth-card small {
+  margin: 0;
+  color: var(--muted);
+}
+
+.cloud-auth-card label {
+  display: grid;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cloud-auth-card input {
+  min-height: 46px;
+  padding: 0 15px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+  font: inherit;
+}
+
+.auth-locked .app,
+.auth-locked .jira-sidebar,
+.auth-locked .jira-topnav {
+  pointer-events: none;
+  user-select: none;
+}
+
+.sync-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sync-status::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.sync-status[data-tone="synced"] {
+  color: var(--green);
+}
+
+.sync-status[data-tone="synced"]::before {
+  background: var(--green);
+}
+
+.sync-status[data-tone="syncing"] {
+  color: var(--blue);
+}
+
+.sync-status[data-tone="syncing"]::before {
+  background: var(--blue);
+}
+
+.sync-status[data-tone="offline"] {
+  color: var(--yellow);
+}
+
+.sync-status[data-tone="offline"]::before {
+  background: var(--yellow);
+}

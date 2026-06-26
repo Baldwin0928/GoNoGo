@@ -7,6 +7,17 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <section class="cloud-auth-screen" id="cloudAuthScreen" hidden>
+      <form class="cloud-auth-card" id="cloudAuthForm">
+        <span class="lozenge type-pill">Shared workspace</span>
+        <h1>Sign in to GoNoGo</h1>
+        <p>Use your team email to open the shared readiness board.</p>
+        <label>Email<input id="cloudAuthEmail" type="email" autocomplete="email" placeholder="name@example.com" required /></label>
+        <button class="button" type="submit">Send magic link</button>
+        <button class="button secondary" id="cloudLocalFallbackBtn" type="button">Continue locally</button>
+        <small id="cloudAuthMessage">You will get a secure sign-in link by email.</small>
+      </form>
+    </section>
     <nav class="jira-topnav">
       <div class="topnav-left">
         <button class="nav-icon" type="button" aria-label="Sidebar">&lt;</button>
@@ -19,6 +30,8 @@
         <input aria-label="Search" placeholder="Search" />
       </label>
       <div class="topnav-right">
+        <span class="sync-status" id="syncStatus">Local</span>
+        <button class="button secondary compact-action" id="signOutBtn" type="button" hidden>Sign out</button>
         <button class="button compact-create" id="createProjectShortcut" type="button">Create</button>
         <button class="nav-icon" type="button" aria-label="Notifications">!</button>
         <div class="avatar">BC</div>
@@ -580,6 +593,7 @@
     </div>
     <datalist id="memberOwnerOptions"></datalist>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/00-constants-seed.js"></script>
     <script src="js/10-state-storage.js"></script>
     <script src="js/20-model-helpers.js"></script>
@@ -589,5 +603,6 @@
     <script src="js/40-layout-engine.js"></script>
     <script src="js/50-graph-render-interaction.js"></script>
     <script src="js/70-forms-events.js"></script>
+    <script src="js/90-cloud-sync.js"></script>
   </body>
 </html>
