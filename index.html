@@ -13,7 +13,13 @@
         <h1>Sign in to GoNoGo</h1>
         <p>Use your team email to open the shared readiness board.</p>
         <label>Email<input id="cloudAuthEmail" type="email" autocomplete="email" placeholder="name@example.com" required /></label>
-        <button class="button" type="submit">Send magic link</button>
+        <label id="cloudPasswordLabel">Password<input id="cloudAuthPassword" type="password" autocomplete="current-password" placeholder="Your password" /></label>
+        <button class="button" id="cloudAuthSubmitBtn" type="submit">Sign in</button>
+        <div class="cloud-auth-actions">
+          <button class="button secondary" id="cloudSignUpBtn" type="button">Create account</button>
+          <button class="button secondary" id="cloudMagicLinkBtn" type="button">Send magic link</button>
+          <button class="button secondary" id="cloudResetPasswordBtn" type="button">Forgot password</button>
+        </div>
         <button class="button secondary" id="cloudLocalFallbackBtn" type="button">Continue locally</button>
         <button class="button secondary" id="cloudSignOutBtn" type="button" hidden>Use a different email</button>
         <small id="cloudAuthMessage">You will get a secure sign-in link by email.</small>
@@ -32,6 +38,7 @@
       </label>
       <div class="topnav-right">
         <span class="sync-status" id="syncStatus">Local</span>
+        <button class="button secondary compact-action" id="setPasswordBtn" type="button" hidden>Set password</button>
         <button class="button secondary compact-action" id="signOutBtn" type="button" hidden>Sign out</button>
         <button class="button compact-create" id="createProjectShortcut" type="button">Create</button>
         <button class="nav-icon" type="button" aria-label="Notifications">!</button>

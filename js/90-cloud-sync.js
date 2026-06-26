@@ -32,57 +32,116 @@ function cloudUserEmail(user) {
   return (user?.email || "").trim().toLowerCase();
 }
 
-function showPendingAccessScreen(message) {
-  const screen = document.getElementById("cloudAuthScreen");
+function authElements() {
   const card = document.getElementById("cloudAuthForm");
-  const emailInput = document.getElementById("cloudAuthEmail");
-  const submit = card?.querySelector("button[type='submit']");
-  const localBtn = document.getElementById("cloudLocalFallbackBtn");
-  const screenSignOut = document.getElementById("cloudSignOutBtn");
-  const msg = document.getElementById("cloudAuthMessage");
-  if (screen) screen.hidden = false;
-  if (card) {
-    const title = card.querySelector("h1");
-    const body = card.querySelector("p");
-    const label = card.querySelector("label");
-    if (title) title.textContent = "Waiting for approval";
-    if (body) body.textContent = "Your email is verified. An admin needs to approve your access before this shared board opens.";
-    if (label) label.hidden = true;
+  return {
+    screen: document.getElementById("cloudAuthScreen"),
+    card,
+    title: card?.querySelector("h1"),
+    body: card?.querySelector("p"),
+    emailLabel: card?.querySelector("label"),
+    emailInput: document.getElementById("cloudAuthEmail"),
+    passwordLabel: document.getElementById("cloudPasswordLabel"),
+    passwordInput: document.getElementById("cloudAuthPassword"),
+    submit: document.getElementById("cloudAuthSubmitBtn"),
+    signUp: document.getElementById("cloudSignUpBtn"),
+    magic: document.getElementById("cloudMagicLinkBtn"),
+    reset: document.getElementById("cloudResetPasswordBtn"),
+    local: document.getElementById("cloudLocalFallbackBtn"),
+    screenSignOut: document.getElementById("cloudSignOutBtn"),
+    msg: document.getElementById("cloudAuthMessage")
+  };
+}
+
+function setPasswordSetupScreen(message = "") {
+  const el = authElements();
+  if (el.screen) el.screen.hidden = false;
+  if (el.title) el.title.textContent = "Set your password";
+  if (el.body) el.body.textContent = "Choose a password for faster sign-in next time.";
+  if (el.emailLabel) el.emailLabel.hidden = true;
+  if (el.emailInput) el.emailInput.required = false;
+  if (el.passwordLabel) el.passwordLabel.hidden = false;
+  if (el.passwordInput) {
+    el.passwordInput.required = true;
+    el.passwordInput.value = "";
+    el.passwordInput.autocomplete = "new-password";
+    el.passwordInput.placeholder = "New password";
+    el.passwordInput.focus();
   }
-  if (emailInput) emailInput.required = false;
-  if (submit) submit.hidden = true;
-  if (localBtn) {
-    localBtn.hidden = false;
-    localBtn.textContent = "Continue locally";
+  if (el.submit) {
+    el.submit.hidden = false;
+    el.submit.textContent = "Save password";
+    el.submit.dataset.authMode = "set-password";
   }
-  if (screenSignOut) screenSignOut.hidden = false;
-  if (msg) msg.textContent = message || "Your request is pending. Ask the workspace admin to approve you in Supabase.";
+  if (el.signUp) el.signUp.hidden = true;
+  if (el.magic) el.magic.hidden = true;
+  if (el.reset) el.reset.hidden = true;
+  if (el.local) el.local.hidden = true;
+  if (el.screenSignOut) {
+    el.screenSignOut.hidden = false;
+    el.screenSignOut.textContent = "Cancel";
+  }
+  if (el.msg) el.msg.textContent = message || "Use at least 6 characters.";
+  document.body.classList.add("auth-locked");
+}
+
+function showPendingAccessScreen(message) {
+  const el = authElements();
+  if (el.screen) el.screen.hidden = false;
+  if (el.title) el.title.textContent = "Waiting for approval";
+  if (el.body) el.body.textContent = "Your email is verified. An admin needs to approve your access before this shared board opens.";
+  if (el.emailLabel) el.emailLabel.hidden = true;
+  if (el.emailInput) el.emailInput.required = false;
+  if (el.passwordLabel) el.passwordLabel.hidden = true;
+  if (el.passwordInput) el.passwordInput.required = false;
+  if (el.submit) el.submit.hidden = true;
+  if (el.signUp) el.signUp.hidden = true;
+  if (el.magic) el.magic.hidden = true;
+  if (el.reset) el.reset.hidden = true;
+  if (el.local) {
+    el.local.hidden = false;
+    el.local.textContent = "Continue locally";
+  }
+  if (el.screenSignOut) {
+    el.screenSignOut.hidden = false;
+    el.screenSignOut.textContent = "Use a different email";
+  }
+  if (el.msg) el.msg.textContent = message || "Your request is pending. Ask the workspace admin to approve you in Supabase.";
   document.body.classList.add("auth-locked");
 }
 
 function resetAuthScreen() {
-  const card = document.getElementById("cloudAuthForm");
-  const emailInput = document.getElementById("cloudAuthEmail");
-  const submit = card?.querySelector("button[type='submit']");
-  const localBtn = document.getElementById("cloudLocalFallbackBtn");
-  const screenSignOut = document.getElementById("cloudSignOutBtn");
-  const msg = document.getElementById("cloudAuthMessage");
-  if (card) {
-    const title = card.querySelector("h1");
-    const body = card.querySelector("p");
-    const label = card.querySelector("label");
-    if (title) title.textContent = "Sign in to GoNoGo";
-    if (body) body.textContent = "Use your team email to open the shared readiness board.";
-    if (label) label.hidden = false;
+  const el = authElements();
+  if (el.title) el.title.textContent = "Sign in to GoNoGo";
+  if (el.body) el.body.textContent = "Use your team email to open the shared readiness board.";
+  if (el.emailLabel) el.emailLabel.hidden = false;
+  if (el.emailInput) {
+    el.emailInput.required = true;
+    el.emailInput.disabled = false;
   }
-  if (emailInput) emailInput.required = true;
-  if (submit) submit.hidden = false;
-  if (localBtn) {
-    localBtn.hidden = false;
-    localBtn.textContent = "Continue locally";
+  if (el.passwordLabel) el.passwordLabel.hidden = false;
+  if (el.passwordInput) {
+    el.passwordInput.required = false;
+    el.passwordInput.autocomplete = "current-password";
+    el.passwordInput.placeholder = "Your password";
   }
-  if (screenSignOut) screenSignOut.hidden = true;
-  if (msg) msg.textContent = "You will get a secure sign-in link by email.";
+  if (el.submit) {
+    el.submit.hidden = false;
+    el.submit.textContent = "Sign in";
+    el.submit.dataset.authMode = "sign-in";
+  }
+  if (el.signUp) el.signUp.hidden = false;
+  if (el.magic) el.magic.hidden = false;
+  if (el.reset) el.reset.hidden = false;
+  if (el.local) {
+    el.local.hidden = false;
+    el.local.textContent = "Continue locally";
+  }
+  if (el.screenSignOut) {
+    el.screenSignOut.hidden = true;
+    el.screenSignOut.textContent = "Use a different email";
+  }
+  if (el.msg) el.msg.textContent = "Sign in with your password, or use magic link as backup.";
 }
 
 async function getOrCreateMembership(user) {
@@ -352,6 +411,8 @@ async function handleSignedIn(session) {
   state.currentUserEmail = session.user.email || "";
   const signOut = document.getElementById("signOutBtn");
   if (signOut) signOut.hidden = false;
+  const setPassword = document.getElementById("setPasswordBtn");
+  if (setPassword) setPassword.hidden = false;
 
   setSyncStatus("Checking access", "syncing");
   cloudMembership = await getOrCreateMembership(session.user);
@@ -385,6 +446,8 @@ async function handleSignedOut() {
   cloudChannel = null;
   const signOut = document.getElementById("signOutBtn");
   if (signOut) signOut.hidden = true;
+  const setPassword = document.getElementById("setPasswordBtn");
+  if (setPassword) setPassword.hidden = true;
   setSyncStatus("Local", "local");
   resetAuthScreen();
   if (SUPABASE_CONFIG.authRequired) setAuthScreen(true);
@@ -402,7 +465,16 @@ async function initCloudSync() {
   if (data.session) await handleSignedIn(data.session);
   else await handleSignedOut();
 
-  cloudClient.auth.onAuthStateChange((_event, session) => {
+  cloudClient.auth.onAuthStateChange((event, session) => {
+    if (event === "PASSWORD_RECOVERY") {
+      cloudSession = session;
+      if (session?.user) {
+        state.currentUser = cloudUserName(session.user);
+        state.currentUserEmail = session.user.email || "";
+      }
+      setPasswordSetupScreen("Enter a new password to finish recovery.");
+      return;
+    }
     if (session) handleSignedIn(session);
     else handleSignedOut();
   });
@@ -412,14 +484,92 @@ document.getElementById("cloudAuthForm")?.addEventListener("submit", async (even
   event.preventDefault();
   if (!cloudClient) return;
   const email = document.getElementById("cloudAuthEmail")?.value.trim();
-  if (!email) return;
+  const password = document.getElementById("cloudAuthPassword")?.value || "";
+  const message = document.getElementById("cloudAuthMessage");
+  const mode = document.getElementById("cloudAuthSubmitBtn")?.dataset.authMode || "sign-in";
+
+  if (mode === "set-password") {
+    if (!password || password.length < 6) {
+      if (message) message.textContent = "Use at least 6 characters.";
+      return;
+    }
+    setSyncStatus("Saving password", "syncing");
+    const { error } = await cloudClient.auth.updateUser({ password });
+    if (message) message.textContent = error ? error.message : "Password saved. You can use it next time you sign in.";
+    if (!error) {
+      const { data } = await cloudClient.auth.getSession();
+      if (data.session || cloudSession) {
+        await handleSignedIn(data.session || cloudSession);
+      } else {
+        setAuthScreen(false);
+        resetAuthScreen();
+        setSyncStatus("Password saved", "synced");
+      }
+    }
+    return;
+  }
+
+  if (!email || !password) {
+    if (message) message.textContent = "Enter your email and password, or use magic link.";
+    return;
+  }
+
+  setSyncStatus("Signing in", "syncing");
+  const { error } = await cloudClient.auth.signInWithPassword({ email, password });
+  if (message) message.textContent = error ? error.message : "Signed in.";
+});
+
+document.getElementById("cloudSignUpBtn")?.addEventListener("click", async () => {
+  if (!cloudClient) return;
+  const email = document.getElementById("cloudAuthEmail")?.value.trim();
+  const password = document.getElementById("cloudAuthPassword")?.value || "";
+  const message = document.getElementById("cloudAuthMessage");
+  if (!email || !password) {
+    if (message) message.textContent = "Enter an email and password to create an account.";
+    return;
+  }
+  if (password.length < 6) {
+    if (message) message.textContent = "Use at least 6 characters.";
+    return;
+  }
+  setSyncStatus("Creating account", "syncing");
+  const { error } = await cloudClient.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: window.location.href.split("#")[0] }
+  });
+  if (message) message.textContent = error ? error.message : "Account created. Check your email if Supabase asks you to confirm it.";
+});
+
+document.getElementById("cloudMagicLinkBtn")?.addEventListener("click", async () => {
+  if (!cloudClient) return;
+  const email = document.getElementById("cloudAuthEmail")?.value.trim();
+  const message = document.getElementById("cloudAuthMessage");
+  if (!email) {
+    if (message) message.textContent = "Enter your email first.";
+    return;
+  }
   setSyncStatus("Email sent", "syncing");
   const { error } = await cloudClient.auth.signInWithOtp({
     email,
     options: { emailRedirectTo: window.location.href.split("#")[0] }
   });
-  const message = document.getElementById("cloudAuthMessage");
   if (message) message.textContent = error ? error.message : "Check your email for the magic sign-in link.";
+});
+
+document.getElementById("cloudResetPasswordBtn")?.addEventListener("click", async () => {
+  if (!cloudClient) return;
+  const email = document.getElementById("cloudAuthEmail")?.value.trim();
+  const message = document.getElementById("cloudAuthMessage");
+  if (!email) {
+    if (message) message.textContent = "Enter your email first.";
+    return;
+  }
+  setSyncStatus("Reset email sent", "syncing");
+  const { error } = await cloudClient.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.href.split("#")[0]
+  });
+  if (message) message.textContent = error ? error.message : "Check your email for the password reset link.";
 });
 
 document.getElementById("signOutBtn")?.addEventListener("click", async () => {
@@ -427,7 +577,16 @@ document.getElementById("signOutBtn")?.addEventListener("click", async () => {
 });
 
 document.getElementById("cloudSignOutBtn")?.addEventListener("click", async () => {
+  if (document.getElementById("cloudAuthSubmitBtn")?.dataset.authMode === "set-password" && cloudSession) {
+    setAuthScreen(false);
+    resetAuthScreen();
+    return;
+  }
   await cloudClient?.auth.signOut();
+});
+
+document.getElementById("setPasswordBtn")?.addEventListener("click", () => {
+  setPasswordSetupScreen();
 });
 
 document.getElementById("cloudLocalFallbackBtn")?.addEventListener("click", () => {

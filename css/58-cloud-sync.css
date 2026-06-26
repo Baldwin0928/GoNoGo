@@ -55,6 +55,24 @@
   font: inherit;
 }
 
+.cloud-auth-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+@media (min-width: 520px) {
+  .cloud-auth-actions {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.cloud-auth-actions .button {
+  min-width: 0;
+  padding-inline: 10px;
+  font-size: 0.86rem;
+}
+
 .auth-locked .app,
 .auth-locked .jira-sidebar,
 .auth-locked .jira-topnav {
