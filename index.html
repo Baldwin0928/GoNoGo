@@ -8,22 +8,38 @@
   </head>
   <body>
     <section class="cloud-auth-screen" id="cloudAuthScreen" hidden>
-      <form class="cloud-auth-card" id="cloudAuthForm">
-        <span class="lozenge type-pill">Shared workspace</span>
-        <h1>Sign in to GoNoGo</h1>
-        <p>Use your team email to open the shared readiness board.</p>
-        <label>Email<input id="cloudAuthEmail" type="email" autocomplete="email" placeholder="name@example.com" required /></label>
-        <label id="cloudPasswordLabel">Password<input id="cloudAuthPassword" type="password" autocomplete="current-password" placeholder="Your password" /></label>
-        <button class="button" id="cloudAuthSubmitBtn" type="submit">Sign in</button>
-        <div class="cloud-auth-actions">
-          <button class="button secondary" id="cloudSignUpBtn" type="button">Create account</button>
-          <button class="button secondary" id="cloudMagicLinkBtn" type="button">Send magic link</button>
-          <button class="button secondary" id="cloudResetPasswordBtn" type="button">Forgot password</button>
-        </div>
-        <button class="button secondary" id="cloudLocalFallbackBtn" type="button">Continue locally</button>
-        <button class="button secondary" id="cloudSignOutBtn" type="button" hidden>Use a different email</button>
-        <small id="cloudAuthMessage">You will get a secure sign-in link by email.</small>
-      </form>
+      <div class="cloud-auth-stage">
+        <form class="cloud-auth-card" id="cloudAuthForm">
+          <div class="auth-brand-row">
+            <span>Propulsive Landers</span>
+          </div>
+          <span class="lozenge type-pill">Shared workspace</span>
+          <h1>Project Management</h1>
+          <p>Use your team email to open the shared readiness board.</p>
+          <label>Email<input id="cloudAuthEmail" type="email" autocomplete="email" placeholder="name@example.com" required /></label>
+          <label id="cloudPasswordLabel">Password<input id="cloudAuthPassword" type="password" autocomplete="current-password" placeholder="Your password" /></label>
+          <button class="button" id="cloudAuthSubmitBtn" type="submit">Sign in</button>
+          <div class="cloud-auth-actions">
+            <button class="button secondary" id="cloudSignUpBtn" type="button">Create account</button>
+            <button class="button secondary" id="cloudMagicLinkBtn" type="button">Send magic link</button>
+            <button class="button secondary" id="cloudResetPasswordBtn" type="button">Forgot password</button>
+          </div>
+          <button class="button secondary" id="cloudLocalFallbackBtn" type="button">Continue locally</button>
+          <button class="button secondary" id="cloudSignOutBtn" type="button" hidden>Use a different email</button>
+          <small id="cloudAuthMessage">You will get a secure sign-in link by email.</small>
+        </form>
+        <aside class="cloud-auth-visual" aria-hidden="true">
+          <img class="auth-logo-watermark" src="whitebutterfly.png" alt="" />
+          <div class="lander-orbit"></div>
+          <img class="auth-lander" src="lander.png" alt="" />
+          <div class="auth-signal auth-signal-one"></div>
+          <div class="auth-signal auth-signal-two"></div>
+          <div class="auth-visual-caption">
+            <span>GTPL readiness</span>
+            <strong>Map blockers before they become launch-day surprises.</strong>
+          </div>
+        </aside>
+      </div>
     </section>
     <nav class="jira-topnav">
       <div class="topnav-left">
