@@ -1,6 +1,13 @@
 // Split from app.js - forms, pointer/keyboard handlers, toolbar actions, initial render call
+function submittedForm(event) {
+  const target = event.target;
+  if (target?.tagName === "FORM") return target;
+  return target?.form || target?.closest?.("form") || null;
+}
+
 document.addEventListener("submit", (event) => {
   event.preventDefault();
+  const form = submittedForm(event);
 
   if (event.target.matches("[data-inline-action-form]")) {
     const item = byId(event.target.dataset.inlineActionForm);
@@ -34,7 +41,7 @@ document.addEventListener("submit", (event) => {
     return;
   }
 
-  if (event.target.id === "docActionForm") {
+  if (form?.id === "docActionForm") {
     const item = byId(activeDocsObjectId);
     const text = document.getElementById("docActionText").value.trim();
     if (!item || !text) return;
@@ -49,7 +56,7 @@ document.addEventListener("submit", (event) => {
     return;
   }
 
-  if (event.target.id === "docLinkForm") {
+  if (form?.id === "docLinkForm") {
     const item = byId(activeDocsObjectId);
     const label = document.getElementById("docLinkLabel").value.trim();
     const url = document.getElementById("docLinkUrl").value.trim();
@@ -65,7 +72,7 @@ document.addEventListener("submit", (event) => {
     return;
   }
 
-  if (event.target.id === "docUpdateForm") {
+  if (form?.id === "docUpdateForm") {
     const item = byId(activeDocsObjectId);
     const text = document.getElementById("docUpdateText").value.trim();
     if (!item || !text) return;
@@ -80,7 +87,42 @@ document.addEventListener("submit", (event) => {
     return;
   }
 
-  if (event.target.id === "objectForm") {
+  if (form?.id === "docNewRevisionForm") {
+    const item = byId(activeDocsObjectId);
+    const label = document.getElementById("docRevisionLabel")?.value.trim();
+    const changeSummary = document.getElementById("docRevisionSummary")?.value.trim();
+    const copyDocs = Boolean(document.getElementById("docRevisionCopyDocs")?.checked);
+    const reviewerName = document.getElementById("docRevisionReviewer")?.value.trim() || "";
+    const basedOnEl = document.getElementById("docRevisionBasedOn");
+    const basedOnRevisionId = basedOnEl?.dataset.basedOnId ? Number(basedOnEl.dataset.basedOnId) : null;
+    if (!item) {
+      window.alert("Select a block first, then create a revision.");
+      return;
+    }
+    if (!label) {
+      window.alert("Enter a revision label, such as Rev A or Rev C.");
+      return;
+    }
+    rememberState();
+    ensureRevisions(item);
+    const newRev = createRevision(item, {
+      label,
+      changeSummary,
+      copyDocs,
+      basedOnRevisionId,
+      reviewerName,
+      createdBy: currentActor()
+    });
+    touchObject(item);
+    logActivity(item.id, "Revision created", `${newRev.label}${changeSummary ? `: ${changeSummary}` : ""}`);
+    saveState();
+    form.reset();
+    activeDocToolTab = "revisions";
+    renderAll();
+    return;
+  }
+
+  if (form?.id === "objectForm") {
     const campaignId = Number(document.getElementById("campaignSelect").value);
     const attachParentId = Number(document.getElementById("attachParentSelect").value) || campaignId;
     const targetIds = selectedObjectIds.size > 1 ? Array.from(selectedObjectIds) : [attachParentId];
@@ -94,6 +136,7 @@ document.addEventListener("submit", (event) => {
     item.id = nextId(state.objects);
     item.projectId = Number(state.activeProjectId);
     item.documentation = emptyDocumentation();
+    ensureRevisions(item);
     rememberState();
     state.objects.push(item);
     selectedObjectId = item.id;
@@ -228,6 +271,12 @@ document.addEventListener("change", (event) => {
 
   if (event.target.id === "docsStatusFilter") {
     activeDocsStatus = event.target.value;
+    renderDocumentationPage();
+    return;
+  }
+
+  if (event.target.id === "docsSortSelect") {
+    activeDocsSort = event.target.value;
     renderDocumentationPage();
     return;
   }
@@ -748,6 +797,60 @@ document.addEventListener("click", (event) => {
     docs.updates = docs.updates.filter((entry) => entry.id !== Number(event.target.dataset.deleteDocUpdate));
     touchObject(item);
     logActivity(item.id, "Update deleted", "");
+    saveState();
+    renderAll();
+    return;
+  }
+
+  const revisionButton = event.target.closest("[data-revision-action]");
+  if (revisionButton) {
+    const item = byId(activeDocsObjectId);
+    if (!item) return;
+    const revisionId = Number(revisionButton.dataset.revisionId);
+    const action = revisionButton.dataset.revisionAction;
+    const rev = getRevisionById(item, revisionId);
+    if (!rev) return;
+    const reviewerInput = document.getElementById("docRevisionReviewer");
+    const reviewerRaw = reviewerInput?.value.trim() || "";
+    const submitter = currentActor();
+    const decider = reviewerRaw || rev.reviewerName || currentActor();
+
+    let ok = false;
+    let detail = "";
+    if (action === "set-current") {
+      rememberState();
+      setCurrentRevision(item, revisionId, submitter);
+      syncBlockStatusFromRevision(item);
+      touchObject(item);
+      ok = true;
+      detail = "Set as current revision";
+    } else if (action === "submit" && ["Draft", "Changes Requested"].includes(rev.status)) {
+      const wasChangesRequested = rev.status === "Changes Requested";
+      rememberState();
+      ok = submitRevisionForReview(item, revisionId, reviewerRaw, submitter);
+      detail = wasChangesRequested ? "Resubmitted for review" : "Submitted for review";
+    } else if (action === "approve" && rev.status === "In Review") {
+      rememberState();
+      ok = approveRevision(item, revisionId, decider);
+      detail = "Approved";
+    } else if (action === "changes" && rev.status === "In Review") {
+      rememberState();
+      ok = requestRevisionChanges(item, revisionId, decider);
+      detail = "Changes requested";
+    } else if (action === "reject" && rev.status === "In Review") {
+      rememberState();
+      ok = rejectRevision(item, revisionId, decider);
+      detail = "Rejected";
+    } else if (action === "release" && ["Approved", "Released"].includes(rev.status)) {
+      rememberState();
+      ok = releaseRevision(item, revisionId, submitter);
+      detail = "Released";
+    } else {
+      window.alert("That revision action is not available for the current status.");
+      return;
+    }
+    if (!ok) return;
+    logActivity(item.id, "Revision updated", `${rev.label}: ${detail}`);
     saveState();
     renderAll();
     return;

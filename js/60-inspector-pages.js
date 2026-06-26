@@ -235,10 +235,25 @@ function renderDocumentationPage() {
       || (activeDocsStatus === "needs-docs" ? documentationCompleteness(item) < 5 : item.status === activeDocsStatus);
     return matchesSearch && matchesStatus;
   });
+  const docsTime = (entry) => new Date(entry.updatedAt || entry.createdAt || 0).getTime();
+  const docsSorters = {
+    "updated-desc": (a, b) => docsTime(b) - docsTime(a),
+    "updated-asc": (a, b) => docsTime(a) - docsTime(b),
+    "name-asc": (a, b) => a.name.localeCompare(b.name),
+    "name-desc": (a, b) => b.name.localeCompare(a.name),
+    "status": (a, b) => (a.status || "").localeCompare(b.status || "") || a.name.localeCompare(b.name),
+    "owner": (a, b) => (a.owner || "Unassigned").localeCompare(b.owner || "Unassigned") || a.name.localeCompare(b.name),
+    "docs-asc": (a, b) => documentationCompleteness(a) - documentationCompleteness(b) || a.name.localeCompare(b.name),
+    "docs-desc": (a, b) => documentationCompleteness(b) - documentationCompleteness(a) || a.name.localeCompare(b.name)
+  };
+  filteredObjects.sort(docsSorters[activeDocsSort] || docsSorters["updated-desc"]);
+
   const searchInput = document.getElementById("docsSearchInput");
   if (searchInput && searchInput.value !== activeDocsSearch) searchInput.value = activeDocsSearch;
   const statusFilter = document.getElementById("docsStatusFilter");
   if (statusFilter) statusFilter.value = activeDocsStatus;
+  const sortSelect = document.getElementById("docsSortSelect");
+  if (sortSelect) sortSelect.value = activeDocsSort;
   document.getElementById("docsBlockCount").textContent = `${objects.length} block${objects.length === 1 ? "" : "s"}`;
   if (!activeDocsObjectId || !objects.some((item) => item.id === activeDocsObjectId)) {
     activeDocsObjectId = selectedObjectId && objects.some((item) => item.id === selectedObjectId) ? selectedObjectId : objects[0]?.id || null;
@@ -258,7 +273,7 @@ function renderDocumentationPage() {
         <button class="doc-block-row ${active ? "active" : ""}" type="button" data-open-doc="${item.id}">
           <strong>${escapeHtml(item.name)}</strong>
           <span>${escapeHtml(item.owner || "Unassigned")} - ${escapeHtml(item.status)}</span>
-          <small>${documentationCompleteness(item)}/5 docs ${openActions ? `- ${openActions} open` : ""}</small>
+          <small>${documentationCompleteness(item)}/5 docs ${openActions ? `- ${openActions} open` : ""} - Updated ${escapeHtml(formatDate(item.updatedAt || item.createdAt))}</small>
         </button>
       `;
     }).join("")
@@ -273,6 +288,11 @@ function renderDocumentationPage() {
   const actionList = document.getElementById("docActionList");
   const linkList = document.getElementById("docLinkList");
   const updateList = document.getElementById("docUpdateList");
+  const revisionCurrent = document.getElementById("docRevisionCurrent");
+  const revisionActions = document.getElementById("docRevisionActions");
+  const revisionHistory = document.getElementById("docRevisionHistory");
+  const revisionCount = document.getElementById("docsRevisionCount");
+  const revisionBasedOn = document.getElementById("docRevisionBasedOn");
   if (!item) {
     title.textContent = "Select a block";
     type.textContent = "Block";
@@ -282,10 +302,16 @@ function renderDocumentationPage() {
     actionList.innerHTML = "";
     linkList.innerHTML = "";
     updateList.innerHTML = "";
+    if (revisionCurrent) revisionCurrent.innerHTML = "";
+    if (revisionActions) revisionActions.innerHTML = "";
+    if (revisionHistory) revisionHistory.innerHTML = "";
+    if (revisionCount) revisionCount.textContent = "0";
     return;
   }
 
   const docs = ensureDocumentation(item);
+  const revisions = ensureRevisions(item);
+  const currentRev = getCurrentRevision(item);
   const requires = state.dependencies.filter((link) => link.parentId === item.id).map((link) => byId(link.childId)).filter(Boolean);
   const requiredBy = state.dependencies.filter((link) => link.childId === item.id).map((link) => byId(link.parentId)).filter(Boolean);
   const openActions = docs.actionItems.filter((action) => !action.done);
@@ -297,11 +323,17 @@ function renderDocumentationPage() {
   document.getElementById("docsActionCount").textContent = openActions.length;
   document.getElementById("docsLinkCount").textContent = docs.links.length;
   document.getElementById("docsUpdateCount").textContent = docs.updates.length;
+  if (revisionCount) revisionCount.textContent = revisions.length;
   const savedState = document.getElementById("docsSaveState");
   if (savedState) savedState.textContent = `Saved - Last updated ${formatDate(item.updatedAt || item.createdAt)}`;
   document.querySelectorAll("[data-doc-tool-tab]").forEach((button) => button.classList.toggle("active", button.dataset.docToolTab === activeDocToolTab));
   document.querySelectorAll("[data-doc-tool-panel]").forEach((panel) => panel.classList.toggle("is-hidden", panel.dataset.docToolPanel !== activeDocToolTab));
+  const revisionChip = currentRev
+    ? `<span class="revision-chip ${revisionStatusClass(currentRev.status)}">${escapeHtml(currentRev.label)} · ${escapeHtml(currentRev.status)}</span>`
+    : "";
   meta.innerHTML = `
+    <span>${escapeHtml(item.type)}</span>
+    ${revisionChip}
     <span>${escapeHtml(item.status)}</span>
     <span>${escapeHtml(item.owner || "Unassigned")}</span>
     <span>Updated ${formatDate(item.updatedAt || item.createdAt)}</span>
@@ -345,6 +377,15 @@ function renderDocumentationPage() {
       </article>
     `).join("")
     : `<div class="empty-card">No updates yet.</div>`;
+
+  if (revisionCurrent) revisionCurrent.innerHTML = renderRevisionCurrentCard(item);
+  if (revisionActions) revisionActions.innerHTML = renderRevisionActions(item);
+  if (revisionHistory) revisionHistory.innerHTML = renderRevisionHistory(item);
+  if (revisionBasedOn) {
+    const baseRev = getCurrentRevision(item);
+    revisionBasedOn.textContent = baseRev ? baseRev.label : "None";
+    revisionBasedOn.dataset.basedOnId = baseRev?.revisionId || "";
+  }
 }
 
 function renderWorkPage() {

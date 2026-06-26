@@ -1,0 +1,393 @@
+/* Block revision tracking UI — timeline history, status chips, calm engineering notebook feel */
+
+.revision-current-card {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+}
+
+.revision-current-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.revision-current-head strong {
+  font-size: 1rem;
+}
+
+.revision-current-badge,
+.revision-released-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.revision-current-badge {
+  background: var(--blue);
+  color: #fff;
+}
+
+.revision-released-badge {
+  background: var(--green-bg);
+  color: var(--green);
+}
+
+.revision-summary {
+  margin: 0 0 10px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.revision-detail {
+  margin: 0 0 6px;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.revision-detail span {
+  font-weight: 600;
+  color: var(--text);
+  margin-right: 6px;
+}
+
+.revision-notes {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--surface-alt);
+  font-size: 0.86rem;
+  color: var(--muted);
+  white-space: pre-wrap;
+}
+
+/* Responsibility / sign-off block: makes accountability explicit. */
+.revision-signoff-title {
+  margin: 14px 0 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.revision-signoff {
+  display: grid;
+  gap: 2px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.signoff-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 8px 12px;
+  background: var(--surface);
+  font-size: 0.84rem;
+}
+
+.signoff-row:nth-child(even) {
+  background: var(--surface-alt);
+}
+
+.signoff-role {
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.signoff-value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 1px 8px;
+}
+
+.signoff-person {
+  color: var(--text);
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.signoff-when {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.signoff-row.is-pending .signoff-person {
+  color: var(--yellow);
+  font-weight: 600;
+}
+
+/* Per-revision audit trail (event log). */
+.revision-event-log {
+  margin-top: 8px;
+  display: grid;
+  gap: 8px;
+}
+
+.revision-event {
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 8px;
+  align-items: start;
+}
+
+.revision-event-dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.event-dot-created { background: var(--blue); }
+.event-dot-submit { background: var(--yellow); }
+.event-dot-approve { background: var(--green); }
+.event-dot-changes { background: #974f0c; }
+.event-dot-reject { background: var(--red); }
+.event-dot-release { background: #006644; }
+.event-dot-superseded { background: var(--muted); }
+
+.revision-event-body {
+  min-width: 0;
+}
+
+.revision-event-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.revision-event-line strong {
+  font-size: 0.85rem;
+}
+
+.revision-event-actor {
+  font-size: 0.82rem;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.revision-event-time {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.revision-event-note {
+  margin: 2px 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.revision-timeline-summary {
+  margin: 0 0 8px;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.revision-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.revision-actions .button.danger-soft {
+  color: var(--red);
+  border-color: rgba(201, 55, 44, 0.25);
+  background: var(--red-bg);
+}
+
+.revision-form {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.revision-form-title {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+}
+
+.revision-based-on {
+  display: block;
+  margin-top: 4px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.revision-history-title {
+  margin: 0 0 12px;
+  font-size: 0.92rem;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.revision-timeline {
+  display: grid;
+  gap: 0;
+}
+
+.revision-timeline-item {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  gap: 12px;
+  position: relative;
+  padding-bottom: 14px;
+}
+
+.revision-timeline-item:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 18px;
+  bottom: 0;
+  width: 2px;
+  background: var(--border);
+}
+
+.revision-timeline-marker {
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--border);
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+.revision-timeline-item.is-current .revision-timeline-marker {
+  background: var(--blue);
+  box-shadow: 0 0 0 2px rgba(12, 102, 228, 0.2);
+}
+
+.revision-timeline-body {
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.revision-timeline-item.is-current .revision-timeline-body {
+  border-color: rgba(12, 102, 228, 0.35);
+}
+
+.revision-timeline-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.revision-timeline-head strong {
+  font-size: 0.95rem;
+}
+
+.revision-timeline-body p {
+  margin: 0 0 6px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.revision-timeline-body small {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.revision-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+}
+
+.lozenge.revision-status-draft,
+.revision-status-draft {
+  background: var(--surface-alt);
+  color: var(--muted);
+}
+
+.lozenge.revision-status-in-review,
+.revision-status-in-review {
+  background: var(--yellow-bg);
+  color: var(--yellow);
+}
+
+.lozenge.revision-status-changes-requested,
+.revision-status-changes-requested {
+  background: #fff4e5;
+  color: #974f0c;
+}
+
+.lozenge.revision-status-approved,
+.revision-status-approved {
+  background: var(--green-bg);
+  color: var(--green);
+}
+
+.lozenge.revision-status-released,
+.revision-status-released {
+  background: #e3fcef;
+  color: #006644;
+}
+
+.lozenge.revision-status-rejected,
+.revision-status-rejected {
+  background: var(--red-bg);
+  color: var(--red);
+}
+
+.lozenge.revision-status-superseded,
+.revision-status-superseded {
+  background: var(--surface-alt);
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+#docsPage .revision-chip.revision-status-in-review {
+  background: var(--yellow-bg);
+  color: var(--yellow);
+  border-color: rgba(148, 111, 0, 0.2);
+}
+
+#docsPage .revision-chip.revision-status-approved,
+#docsPage .revision-chip.revision-status-released {
+  background: var(--green-bg);
+  color: var(--green);
+  border-color: rgba(31, 132, 90, 0.2);
+}
+
+#docsPage .docs-tool-tab span#docsRevisionCount {
+  min-width: 1.2em;
+}

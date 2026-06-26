@@ -32,6 +32,7 @@ let selectedObjectIds = new Set();
 let activeDocsObjectId = null;
 let activeDocsSearch = "";
 let activeDocsStatus = "all";
+let activeDocsSort = "updated-desc";
 let activeDocToolTab = "actions";
 let activeWorkOwner = "all";
 let activeWorkStatus = "all";
@@ -86,7 +87,12 @@ function normalizeState(raw) {
         rollupGateBlockId: item.rollupGateBlockId ? Number(item.rollupGateBlockId) : null,
         allowManualOverride: Boolean(item.allowManualOverride),
         manualOverride: Boolean(item.manualOverride),
-        requiredForReadiness: item.requiredForReadiness !== false
+        requiredForReadiness: item.requiredForReadiness !== false,
+        revisions: normalizeRevisions(item.revisions, Number(item.id)),
+        currentRevisionId: item.currentRevisionId ? Number(item.currentRevisionId) : null,
+        currentRevisionLabel: String(item.currentRevisionLabel || ""),
+        revisionStatus: revisionStatuses.includes(item.revisionStatus) ? item.revisionStatus : "",
+        releasedRevisionId: item.releasedRevisionId ? Number(item.releasedRevisionId) : null
       }))
     : [];
   const objectIds = new Set(objects.map((item) => item.id));
@@ -157,6 +163,13 @@ function formatDate(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Unknown";
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+function formatDateTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Unknown";
+  return date.toLocaleString(undefined, { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
 }
 
 function daysSince(value) {

@@ -168,7 +168,7 @@ function renderGraph(root, deps) {
           ${countMarkup}
           <text class="node-title" x="${NODE_PAD_X}" y="${NODE_TITLE_Y}">${escapeSvg(shorten(item.name, 24))}</text>
           <circle class="status-dot" cx="${NODE_PAD_X + 4}" cy="${NODE_DOT_CY}" r="3"></circle>
-          <text class="meta" x="${NODE_PAD_X + 12}" y="${NODE_META_Y}">${escapeSvg(displayStatus)} - ${escapeSvg(item.owner || "Unassigned")}</text>
+          <text class="meta" x="${NODE_PAD_X + 12}" y="${NODE_META_Y}">${escapeSvg(nodeRevisionMetaLine(item) || `${displayStatus} - ${item.owner || "Unassigned"}`)}</text>
           ${rollup ? `<text class="linked-meta-label" x="${NODE_PAD_X}" y="${NODE_META_Y + 13}">Linked</text><text class="linked-meta" x="${NODE_PAD_X + 42}" y="${NODE_META_Y + 13}">${escapeSvg(linkedMeta)}</text>` : ""}
           <circle class="connect-handle output" data-handle="source" cx="${NODE_WIDTH}" cy="${NODE_CENTER_Y}" r="5"></circle>
           <circle class="connect-handle input" data-handle="target" cx="0" cy="${NODE_CENTER_Y}" r="5"></circle>

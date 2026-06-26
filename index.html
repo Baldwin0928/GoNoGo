@@ -346,6 +346,16 @@
               <option value="In Progress">In progress</option>
               <option value="Ready">Ready</option>
             </select></label>
+            <label class="docs-filter-field">Sort<select id="docsSortSelect">
+              <option value="updated-desc">Last modified (newest)</option>
+              <option value="updated-asc">Last modified (oldest)</option>
+              <option value="name-asc">Name (A-Z)</option>
+              <option value="name-desc">Name (Z-A)</option>
+              <option value="status">Status</option>
+              <option value="owner">Owner</option>
+              <option value="docs-asc">Least documented</option>
+              <option value="docs-desc">Most documented</option>
+            </select></label>
             <label>Open block<select id="docsBlockSelect"></select></label>
             <div id="docsBlockList" class="docs-block-list"></div>
           </aside>
@@ -375,6 +385,7 @@
               <button class="docs-tool-tab active" type="button" data-doc-tool-tab="actions">Actions <span id="docsActionCount">0</span></button>
               <button class="docs-tool-tab" type="button" data-doc-tool-tab="links">Links <span id="docsLinkCount">0</span></button>
               <button class="docs-tool-tab" type="button" data-doc-tool-tab="updates">Updates <span id="docsUpdateCount">0</span></button>
+              <button class="docs-tool-tab" type="button" data-doc-tool-tab="revisions">Revisions <span id="docsRevisionCount">0</span></button>
             </div>
 
             <div class="docs-tool-panel" data-doc-tool-panel="actions">
@@ -400,6 +411,21 @@
                 <button class="button secondary" type="submit">Log update</button>
               </form>
               <div id="docUpdateList" class="doc-list"></div>
+            </div>
+
+            <div class="docs-tool-panel is-hidden" data-doc-tool-panel="revisions">
+              <div id="docRevisionCurrent"></div>
+              <div id="docRevisionActions"></div>
+              <form class="stack-form compact-form revision-form" id="docNewRevisionForm">
+                <h3 class="revision-form-title">New revision</h3>
+                <label>Label<input id="docRevisionLabel" placeholder="Rev C" required /></label>
+                <label>Based on<span id="docRevisionBasedOn" class="revision-based-on">Current</span></label>
+                <label>Change summary<textarea id="docRevisionSummary" rows="2" placeholder="What changed in this iteration?"></textarea></label>
+                <label class="checkline"><input type="checkbox" id="docRevisionCopyDocs" /> Copy docs summary into revision notes</label>
+                <label>Reviewer (optional)<input id="docRevisionReviewer" placeholder="Propulsion Lead" /></label>
+                <button class="button" type="submit">Create revision</button>
+              </form>
+              <div id="docRevisionHistory"></div>
             </div>
           </aside>
         </section>
@@ -540,6 +566,7 @@
     <script src="js/00-constants-seed.js"></script>
     <script src="js/10-state-storage.js"></script>
     <script src="js/20-model-helpers.js"></script>
+    <script src="js/25-revisions.js"></script>
     <script src="js/30-readiness-dependencies.js"></script>
     <script src="js/60-inspector-pages.js"></script>
     <script src="js/40-layout-engine.js"></script>

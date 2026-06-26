@@ -28,8 +28,8 @@
 }
 
 .notion-page-head {
-  max-width: 1180px;
-  margin: 0 auto 28px;
+  max-width: none;
+  margin: 0 0 28px;
 }
 
 .notion-breadcrumb {
@@ -314,13 +314,13 @@
 }
 
 #workPage .work-command-bar {
-  max-width: 1180px;
-  margin: 0 auto 14px;
+  max-width: none;
+  margin: 0 0 14px;
 }
 
 #workPage .work-grid {
-  max-width: 1180px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
 }
 
 #workPage .command-bar .metric strong {

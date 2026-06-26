@@ -1,4 +1,21 @@
 // Split from app.js - selection, CRUD helpers, ownership helpers, graph mutation helpers
+
+// Single source of truth for "who is performing this action right now".
+// Every revision/audit actor (created by, submitted by, decided by, released by)
+// flows through here so accountability is consistent across the app.
+//
+// LOCAL-FIRST (today): there is no authentication, so we use one stored
+// workspace identity (state.currentUser). It defaults to "You" instead of a
+// vague "Unknown", and can be overridden by setting state.currentUser.
+//
+// ONLINE (future): replace the body of this function to return the signed-in
+// user's display name (e.g. session.user.name). That single change makes every
+// new revision and audit event automatically attribute to the real user.
+function currentActor() {
+  const name = state && state.currentUser ? String(state.currentUser).trim() : "";
+  return name || "You";
+}
+
 function updateHistoryButtons() {
   const undoButton = document.getElementById("undoBtn");
   const redoButton = document.getElementById("redoBtn");

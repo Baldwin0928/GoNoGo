@@ -11,7 +11,7 @@
 #workPage .work-page-head,
 #workPage .work-command-bar,
 #workPage .work-grid {
-  max-width: 1320px;
+  max-width: none;
 }
 
 #workPage .work-page-head {
@@ -436,7 +436,7 @@
 
 #docsPage .docs-page-head,
 #docsPage .docs-shell {
-  max-width: 1500px;
+  max-width: none;
 }
 
 #docsPage .docs-page-head {
@@ -445,7 +445,7 @@
 
 #docsPage .docs-shell {
   display: grid;
-  grid-template-columns: minmax(260px, 310px) minmax(640px, 1fr) minmax(280px, 330px);
+  grid-template-columns: minmax(280px, 0.85fr) minmax(560px, 2.2fr) minmax(300px, 0.95fr);
   gap: 18px;
   align-items: start;
   margin: 0 auto;
@@ -626,7 +626,7 @@
 
 #docsPage .docs-tool-tabs {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   margin-bottom: 16px;
 }
@@ -874,6 +874,13 @@
 @media (min-width: 1080px) {
   #workPage .owned-work-panel .work-list {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* On wide screens, divide the reclaimed width into a fourth column. */
+@media (min-width: 1640px) {
+  #workPage .owned-work-panel .work-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 

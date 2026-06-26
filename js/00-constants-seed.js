@@ -6,6 +6,8 @@ const statuses = ["Not Started", "In Progress", "Blocked", "Ready", "Complete", 
 const relationshipTypes = ["requires", "blocks", "invalidates", "owns", "verifies", "depends_on", "derived_from", "replaces", "supersedes", "affects"];
 const rollupModes = ["required", "all", "gate", "manual"];
 const readyStatuses = new Set(["Ready", "Complete"]);
+const revisionStatuses = ["Draft", "In Review", "Changes Requested", "Approved", "Rejected", "Superseded", "Released"];
+const revisionReadyStatuses = new Set(["Approved", "Released"]);
 const SNAP_GRID = 24;
 const SNAP_DISTANCE = 14;
 const DEFAULT_PROJECT_ID = 1;
@@ -32,7 +34,8 @@ const seedState = {
     object("Leak Check", "Test", "Not Started", "Prop Lead", "Leak check after engine installation."),
     object("Test Procedure Rev C", "Document", "Complete", "Test Director", "Current hotfire run procedure."),
     object("Pressure Transducer Calibration", "Task", "Not Started", "Avionics", "Calibration status for pressure channels."),
-    object("Igniter Test", "Test", "Ready", "Ignition", "Ignition subsystem checkout.")
+    object("Igniter Test", "Test", "Ready", "Ignition", "Ignition subsystem checkout."),
+    object("Regen & Film-Cooled Nozzle Design", "Hardware", "In Progress", "Anyi", "Regenerative and film-cooled nozzle design iteration.")
   ],
   dependencies: []
 };
@@ -47,7 +50,8 @@ seedState.dependencies = [
   dependency(2, 3, "requires", "Engine Rev D includes Injector Rev C."),
   dependency(5, 9, "requires", "DAQ validation requires calibrated sensors."),
   dependency(7, 2, "requires", "Leak check is on the installed engine."),
-  dependency(1, 10, "requires", "Igniter must be checked before hotfire.")
+  dependency(1, 10, "requires", "Igniter must be checked before hotfire."),
+  dependency(1, 11, "requires", "Nozzle design must be reviewed before hotfire.")
 ];
 
 function object(name, type, status, owner, description) {
@@ -67,8 +71,149 @@ function object(name, type, status, owner, description) {
     rollupGateBlockId: null,
     allowManualOverride: false,
     manualOverride: false,
-    requiredForReadiness: true
+    requiredForReadiness: true,
+    revisions: [],
+    currentRevisionId: null,
+    currentRevisionLabel: "",
+    revisionStatus: "",
+    releasedRevisionId: null
   };
+}
+
+function revision(blockId, label, status, options = {}) {
+  return {
+    revisionId: 0,
+    blockId: Number(blockId),
+    label: String(label || "Rev A"),
+    status: revisionStatuses.includes(status) ? status : "Draft",
+    createdBy: String(options.createdBy || ""),
+    createdAt: options.createdAt || new Date().toISOString(),
+    updatedAt: options.updatedAt || new Date().toISOString(),
+    submittedBy: String(options.submittedBy || ""),
+    submittedAt: options.submittedAt || "",
+    reviewerName: String(options.reviewerName || ""),
+    decidedBy: String(options.decidedBy || ""),
+    decidedAt: options.decidedAt || "",
+    approvedAt: options.approvedAt || "",
+    releasedBy: String(options.releasedBy || ""),
+    releasedAt: options.releasedAt || "",
+    decision: String(options.decision || ""),
+    changeSummary: String(options.changeSummary || ""),
+    notes: String(options.notes || ""),
+    linkedDocs: Array.isArray(options.linkedDocs) ? options.linkedDocs : [],
+    isCurrent: Boolean(options.isCurrent),
+    isReleased: Boolean(options.isReleased),
+    isApproved: Boolean(options.isApproved),
+    basedOnRevisionId: options.basedOnRevisionId ? Number(options.basedOnRevisionId) : null,
+    events: Array.isArray(options.events) ? options.events : []
+  };
+}
+
+function normalizeRevisionEvents(raw = []) {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((entry, index) => ({
+    id: Number(entry.id) || Date.now() + index,
+    action: String(entry.action || "Updated"),
+    actor: String(entry.actor || "Unknown"),
+    at: entry.at || new Date().toISOString(),
+    note: String(entry.note || "")
+  }));
+}
+
+function normalizeRevisions(raw = [], blockId = 0) {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((entry, index) => ({
+    revisionId: Number(entry.revisionId) || Date.now() + index,
+    blockId: Number(entry.blockId) || Number(blockId),
+    label: String(entry.label || `Rev ${index + 1}`),
+    status: revisionStatuses.includes(entry.status) ? entry.status : "Draft",
+    createdBy: String(entry.createdBy || ""),
+    createdAt: entry.createdAt || new Date().toISOString(),
+    updatedAt: entry.updatedAt || entry.createdAt || new Date().toISOString(),
+    submittedBy: String(entry.submittedBy || ""),
+    submittedAt: entry.submittedAt || "",
+    reviewerName: String(entry.reviewerName || ""),
+    decidedBy: String(entry.decidedBy || ""),
+    decidedAt: entry.decidedAt || entry.approvedAt || "",
+    approvedAt: entry.approvedAt || "",
+    releasedBy: String(entry.releasedBy || ""),
+    releasedAt: entry.releasedAt || "",
+    decision: String(entry.decision || ""),
+    changeSummary: String(entry.changeSummary || ""),
+    notes: String(entry.notes || ""),
+    linkedDocs: Array.isArray(entry.linkedDocs) ? entry.linkedDocs : [],
+    isCurrent: Boolean(entry.isCurrent),
+    isReleased: Boolean(entry.isReleased),
+    isApproved: Boolean(entry.isApproved),
+    basedOnRevisionId: entry.basedOnRevisionId ? Number(entry.basedOnRevisionId) : null,
+    events: normalizeRevisionEvents(entry.events)
+  }));
+}
+
+function seedBlockRevisions(item) {
+  if (item.name === "Regen & Film-Cooled Nozzle Design") {
+    const day = 86400000;
+    const aCreated = new Date(Date.now() - day * 21).toISOString();
+    const aSubmitted = new Date(Date.now() - day * 19).toISOString();
+    const aApproved = new Date(Date.now() - day * 18).toISOString();
+    const revA = revision(item.id, "Rev A", "Superseded", {
+      createdBy: "Anyi Okafor",
+      createdAt: aCreated,
+      changeSummary: "Initial regen channel layout and baseline film cooling pattern.",
+      isCurrent: false,
+      isApproved: true,
+      submittedBy: "Anyi Okafor",
+      submittedAt: aSubmitted,
+      reviewerName: "Marcus Lee (Propulsion Lead)",
+      decidedBy: "Marcus Lee (Propulsion Lead)",
+      decidedAt: aApproved,
+      approvedAt: aApproved,
+      decision: "Approved",
+      events: [
+        { id: 1, action: "Created", actor: "Anyi Okafor", at: aCreated, note: "Baseline nozzle design." },
+        { id: 2, action: "Submitted for review", actor: "Anyi Okafor", at: aSubmitted, note: "" },
+        { id: 3, action: "Approved", actor: "Marcus Lee (Propulsion Lead)", at: aApproved, note: "Meets baseline cooling margin." },
+        { id: 4, action: "Superseded", actor: "Anyi Okafor", at: new Date(Date.now() - day * 4).toISOString(), note: "Superseded by Rev B." }
+      ]
+    });
+    revA.revisionId = 1;
+    const bCreated = new Date(Date.now() - day * 4).toISOString();
+    const bSubmitted = new Date(Date.now() - day * 2).toISOString();
+    const revB = revision(item.id, "Rev B", "In Review", {
+      createdBy: "Anyi Okafor",
+      createdAt: bCreated,
+      changeSummary: "Updated cooling channel geometry and film cooling pattern.",
+      basedOnRevisionId: 1,
+      isCurrent: true,
+      submittedBy: "Anyi Okafor",
+      submittedAt: bSubmitted,
+      reviewerName: "Marcus Lee (Propulsion Lead)",
+      decision: "Pending",
+      events: [
+        { id: 1, action: "Created", actor: "Anyi Okafor", at: bCreated, note: "Based on Rev A." },
+        { id: 2, action: "Submitted for review", actor: "Anyi Okafor", at: bSubmitted, note: "Requesting propulsion sign-off." }
+      ]
+    });
+    revB.revisionId = 2;
+    const cCreated = new Date(Date.now() - day).toISOString();
+    const revC = revision(item.id, "Rev C", "Draft", {
+      createdBy: "Anyi Okafor",
+      createdAt: cCreated,
+      changeSummary: "Planned optimization for higher chamber pressure.",
+      basedOnRevisionId: 2,
+      isCurrent: false,
+      events: [
+        { id: 1, action: "Created", actor: "Anyi Okafor", at: cCreated, note: "Exploratory next iteration." }
+      ]
+    });
+    revC.revisionId = 3;
+    item.revisions = [revA, revB, revC];
+    item.currentRevisionId = 2;
+    item.currentRevisionLabel = "Rev B";
+    item.revisionStatus = "In Review";
+    item.status = "Needs Review";
+  }
+  return item;
 }
 
 function dependency(parentId, childId, relationshipType, notes) {
@@ -161,7 +306,13 @@ function normalizeSeed(seed) {
     members: [],
     pings: [],
     activity: [],
-    objects: seed.objects.map((item, index) => ({ ...item, id: index + 1, projectId: DEFAULT_PROJECT_ID, documentation: normalizeDocumentation(item.documentation) })),
+    objects: seed.objects.map((item, index) => seedBlockRevisions({
+      ...item,
+      id: index + 1,
+      projectId: DEFAULT_PROJECT_ID,
+      documentation: normalizeDocumentation(item.documentation),
+      revisions: normalizeRevisions(item.revisions, index + 1)
+    })),
     dependencies: seed.dependencies.map((item, index) => ({ ...item, id: index + 1 })),
     layout: {}
   };

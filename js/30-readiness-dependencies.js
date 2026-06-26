@@ -118,7 +118,15 @@ function getLinkedRollup(item, seen = new Set()) {
 
 function effectiveObjectStatus(item, seen = new Set()) {
   const rollup = getLinkedRollup(item, seen);
-  return rollup?.status || item?.status || "Unknown";
+  if (rollup?.status) return rollup.status;
+  if (hasRevisions(item)) {
+    const current = getCurrentRevision(item);
+    if (current && current.status !== "Superseded") {
+      const derived = revisionDerivedBlockStatus(current.status);
+      if (derived) return derived;
+    }
+  }
+  return item?.status || "Unknown";
 }
 
 function effectiveReadinessPercent(item) {
