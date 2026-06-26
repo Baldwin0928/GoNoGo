@@ -32,6 +32,25 @@ function renderGraph(root, deps) {
 
   const width = Math.max(760, 300 + Math.max(0, ...Array.from(positions.values()).map((pos) => pos.x || 0)));
   const height = Math.max(620, Math.max(0, ...Array.from(positions.values()).map((pos) => (pos.y || 0) + NODE_HEIGHT + 28)));
+  const routedEdges = edges.filter(link => positions.has(link.parentId) && positions.has(link.childId));
+  const incomingRoutes = new Map();
+  const outgoingRoutes = new Map();
+  routedEdges.forEach((link) => {
+    const incoming = incomingRoutes.get(link.parentId) || [];
+    incoming.push(link);
+    incomingRoutes.set(link.parentId, incoming);
+    const outgoing = outgoingRoutes.get(link.childId) || [];
+    outgoing.push(link);
+    outgoingRoutes.set(link.childId, outgoing);
+  });
+  incomingRoutes.forEach((list) => list.sort((a, b) => positions.get(a.childId).y - positions.get(b.childId).y));
+  outgoingRoutes.forEach((list) => list.sort((a, b) => positions.get(a.parentId).y - positions.get(b.parentId).y));
+  const laneOffset = (link, routeMap, key, spacing = 12) => {
+    const routes = routeMap.get(key) || [];
+    const index = routes.findIndex((route) => Number(route.id) === Number(link.id));
+    if (index < 0 || routes.length <= 1) return 0;
+    return (index - (routes.length - 1) / 2) * spacing;
+  };
   const linkGroups = edges.filter(link => positions.has(link.parentId) && positions.has(link.childId)).reduce((groups, link) => {
     const list = groups.get(link.parentId) || [];
     list.push(link);
@@ -41,36 +60,45 @@ function renderGraph(root, deps) {
   const lines = Array.from(linkGroups.entries())
     .map(([blockedId, links]) => {
       const blocked = positions.get(Number(blockedId));
-      const endX = blocked.x - 12;
+      const endX = blocked.x - 18;
       const endY = blocked.y + NODE_CENTER_Y;
-      if (links.length >= 4) {
-        const hubX = blocked.x - 52;
+      if (links.length >= 2) {
+        const hubX = blocked.x - 38;
         const hubY = endY;
-        const feeders = links.map((link) => {
+        const sortedLinks = [...links].sort((a, b) => positions.get(a.childId).y - positions.get(b.childId).y);
+        const laneSpacing = Math.max(10, Math.min(18, 72 / Math.max(1, sortedLinks.length - 1)));
+        const laneYs = sortedLinks.map((link, index) => hubY + (index - (sortedLinks.length - 1) / 2) * laneSpacing);
+        const feeders = sortedLinks.map((link, index) => {
           const blocker = positions.get(link.childId);
-          const startX = blocker.x + NODE_WIDTH;
-          const startY = blocker.y + NODE_CENTER_Y;
-          const curve = Math.max(44, Math.abs(hubX - startX) * 0.35);
+          const startX = blocker.x + NODE_WIDTH + 8;
+          const startY = blocker.y + NODE_CENTER_Y + laneOffset(link, outgoingRoutes, link.childId, 10);
+          const laneY = laneYs[index];
+          const routeGap = Math.max(1, hubX - startX);
+          const bendX = startX + Math.min(42, Math.max(12, routeGap * 0.55));
           const isHighlight = selectedSet.size === 0 || (highlightSet.has(link.parentId) && highlightSet.has(link.childId));
           const isSelectedEdge = Number(link.id) === Number(selectedDependencyId);
-          const pathD = `M ${startX} ${startY} C ${startX + curve} ${startY}, ${hubX - curve} ${hubY}, ${hubX} ${hubY}`;
+          const pathD = `M ${startX} ${startY} C ${bendX} ${startY}, ${bendX} ${laneY}, ${hubX} ${laneY}`;
           return `
             <path class="graph-line graph-line-feeder${isHighlight ? "" : " dimmed"}${isSelectedEdge ? " selected-edge" : ""}" data-dependency-id="${link.id}" d="${pathD}" />
             <path class="graph-line-hit" data-dependency-id="${link.id}" d="${pathD}" />
           `;
         }).join("");
         const groupHighlight = selectedSet.size === 0 || highlightSet.has(Number(blockedId));
+        const spineTop = Math.min(...laneYs, hubY);
+        const spineBottom = Math.max(...laneYs, hubY);
         return `
           ${feeders}
-          <circle class="junction-dot${groupHighlight ? "" : " dimmed"}" cx="${hubX}" cy="${hubY}" r="5"></circle>
-          <text class="junction-label${groupHighlight ? "" : " dimmed"}" x="${hubX - 8}" y="${hubY - 12}">${links.length} blockers</text>
-          <path class="graph-line graph-line-final${groupHighlight ? "" : " dimmed"}" d="M ${hubX} ${hubY} L ${endX} ${endY}" marker-end="url(#arrow)" />
+          <path class="graph-line graph-line-spine${groupHighlight ? "" : " dimmed"}" d="M ${hubX} ${spineTop} L ${hubX} ${spineBottom}" />
+          <circle class="junction-dot${groupHighlight ? "" : " dimmed"}" cx="${hubX}" cy="${hubY}" r="3.8"></circle>
+          ${links.length >= 4 ? `<text class="junction-label${groupHighlight ? "" : " dimmed"}" x="${hubX - 6}" y="${hubY - 13}">${links.length} blockers</text>` : ""}
+          <path class="graph-line graph-line-final${groupHighlight ? "" : " dimmed"}" d="M ${hubX} ${hubY} C ${hubX + 16} ${hubY}, ${endX - 18} ${endY}, ${endX} ${endY}" marker-end="url(#arrow)" />
         `;
       }
       return links.map((link) => {
         const blocker = positions.get(link.childId);
-        const startX = blocker.x + NODE_WIDTH;
-        const startY = blocker.y + NODE_CENTER_Y;
+        const startX = blocker.x + NODE_WIDTH + 8;
+        const startY = blocker.y + NODE_CENTER_Y + laneOffset(link, outgoingRoutes, link.childId, 10);
+        const targetY = endY + laneOffset(link, incomingRoutes, link.parentId, 12);
         const isHighlight = selectedSet.size === 0 || (highlightSet.has(link.parentId) && highlightSet.has(link.childId));
         
         let pathD = "";
@@ -78,15 +106,15 @@ function renderGraph(root, deps) {
         if (isLongEdge) {
           const midX1 = startX + 32;
           const midX2 = endX - 32;
-          const safeY = Math.max(startY, endY) + 110; // Route below nodes
-          pathD = `M ${startX} ${startY} C ${midX1} ${startY}, ${midX1} ${safeY}, ${midX1 + 32} ${safeY} L ${midX2 - 32} ${safeY} C ${midX2} ${safeY}, ${midX2} ${endY}, ${endX} ${endY}`;
+          const safeY = Math.max(startY, targetY) + 118 + Math.abs(laneOffset(link, incomingRoutes, link.parentId, 12)); // Route below nodes
+          pathD = `M ${startX} ${startY} C ${midX1} ${startY}, ${midX1} ${safeY}, ${midX1 + 32} ${safeY} L ${midX2 - 32} ${safeY} C ${midX2} ${safeY}, ${midX2} ${targetY}, ${endX} ${targetY}`;
         } else {
-          const curve = Math.max(54, Math.abs(endX - startX) * 0.42);
-          pathD = `M ${startX} ${startY} C ${startX + curve} ${startY}, ${endX - curve} ${endY}, ${endX} ${endY}`;
+          const curve = Math.min(52, Math.max(18, Math.abs(endX - startX) * 0.45));
+          pathD = `M ${startX} ${startY} C ${startX + curve} ${startY}, ${endX - curve} ${targetY}, ${endX} ${targetY}`;
         }
         
         const midX = (startX + endX) / 2;
-        const midY = isLongEdge ? Math.max(startY, endY) + 110 : (startY + endY) / 2 - 6;
+        const midY = isLongEdge ? Math.max(startY, targetY) + 110 : (startY + targetY) / 2 - 6;
         
         const isSelectedEdge = Number(link.id) === Number(selectedDependencyId);
         return `
@@ -103,7 +131,7 @@ function renderGraph(root, deps) {
       const pos = positions.get(item.id);
       const rollup = getLinkedRollup(item);
       const displayStatus = rollup?.status || item.status;
-      const readinessPercent = rollup ? `${rollup.readinessPercent}% ready` : "";
+      const linkedMeta = rollup ? `${rollup.readinessPercent}% ready | ${rollup.blockerCount} blocker${rollup.blockerCount === 1 ? "" : "s"}` : "";
       const isReady = readyStatuses.has(displayStatus);
       const isSelected = selectedObjectIds.has(item.id) || item.id === selectedObjectId;
       const isHighlight = selectedSet.size === 0 || highlightSet.has(item.id);
@@ -141,7 +169,7 @@ function renderGraph(root, deps) {
           <text class="node-title" x="${NODE_PAD_X}" y="${NODE_TITLE_Y}">${escapeSvg(shorten(item.name, 24))}</text>
           <circle class="status-dot" cx="${NODE_PAD_X + 4}" cy="${NODE_DOT_CY}" r="3"></circle>
           <text class="meta" x="${NODE_PAD_X + 12}" y="${NODE_META_Y}">${escapeSvg(displayStatus)} - ${escapeSvg(item.owner || "Unassigned")}</text>
-          ${rollup ? `<text class="linked-meta" x="${NODE_PAD_X}" y="${NODE_META_Y + 13}">Linked project - ${escapeSvg(readinessPercent)} - ${rollup.blockerCount} blockers</text>` : ""}
+          ${rollup ? `<text class="linked-meta-label" x="${NODE_PAD_X}" y="${NODE_META_Y + 13}">Linked</text><text class="linked-meta" x="${NODE_PAD_X + 42}" y="${NODE_META_Y + 13}">${escapeSvg(linkedMeta)}</text>` : ""}
           <circle class="connect-handle output" data-handle="source" cx="${NODE_WIDTH}" cy="${NODE_CENTER_Y}" r="5"></circle>
           <circle class="connect-handle input" data-handle="target" cx="0" cy="${NODE_CENTER_Y}" r="5"></circle>
         </g>
@@ -155,8 +183,8 @@ function renderGraph(root, deps) {
         <pattern id="dotGrid" width="24" height="24" patternUnits="userSpaceOnUse" patternTransform="translate(${panX}, ${panY})">
           <circle cx="2" cy="2" r="1.5" class="grid-dot"></circle>
         </pattern>
-        <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="5" orient="auto" markerUnits="strokeWidth">
-          <path d="M1,1 L10,5 L1,9" class="arrow-head"></path>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+          <path d="M1.2,1.4 L7,4 L1.2,6.6" class="arrow-head"></path>
         </marker>
       </defs>
       <rect width="100%" height="100%" fill="url(#dotGrid)" class="grid-bg" />

@@ -292,9 +292,6 @@ body[data-theme="dark"] .topbar {
 
 
 /* Linked project blocks / nested map rollups. */
-.graph-node.linked-project-node .node-body {
-  stroke-dasharray: 5 5;
-}
 
 .graph-node .linked-meta {
   fill: #667085;
@@ -368,4 +365,73 @@ body[data-theme="dark"] .topbar {
   border-color: rgba(201, 55, 44, 0.16);
   background: rgba(255, 235, 230, 0.72);
   color: #9f2c23;
+}
+
+/* Map visual polish: softer connectors and integrated linked rollups. */
+.graph-line {
+  stroke: #738196;
+  stroke-width: 1.65;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.86;
+}
+
+.graph-line-feeder {
+  stroke-width: 1.45;
+  opacity: 0.76;
+}
+
+.graph-line-final {
+  stroke-width: 1.85;
+  opacity: 0.84;
+}
+
+.arrow-head {
+  fill: none;
+  stroke: #738196;
+  stroke-width: 1.45;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.9;
+}
+
+.junction-dot {
+  fill: #536075;
+  opacity: 0.88;
+}
+
+.graph-line.selected-edge {
+  stroke: #2f3948;
+  stroke-width: 2.35;
+  opacity: 0.98;
+}
+
+.graph-node.linked-project-node .node-body {
+  stroke: rgba(20, 20, 20, 0.08);
+  stroke-width: 1;
+  stroke-dasharray: none;
+}
+
+.graph-node.linked-project-node.selected .node-body {
+  stroke: rgba(20, 20, 20, 0.72);
+  stroke-width: 1.8;
+}
+
+.graph-node .linked-meta-label {
+  fill: #586579;
+  font-size: 8.8px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.graph-node .linked-meta {
+  fill: #768195;
+  font-size: 9.4px;
+  font-weight: 600;
+}
+
+.graph-line-spine {
+  stroke-width: 1.25;
+  opacity: 0.58;
 }

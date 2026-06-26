@@ -17,7 +17,7 @@ const NODE_TITLE_Y = 50;
 const NODE_META_Y = 73;
 const NODE_DOT_CY = 70;
 const NODE_ROW_GAP = 98;
-const NODE_COLUMN_GAP = 232;
+const NODE_COLUMN_GAP = 260;
 const MAX_LANE_ROWS = 5;
 const STALE_DAYS = 7;
 
