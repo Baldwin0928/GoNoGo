@@ -197,28 +197,54 @@ function renderProjectPage() {
 function renderTeamPage() {
   const memberCards = document.getElementById("memberCards");
   if (!memberCards) return;
-  document.getElementById("memberCount").textContent = `${state.members.length} member${state.members.length === 1 ? "" : "s"}`;
-  if (!state.members.length) {
-    memberCards.innerHTML = `<div class="empty-card">No teammates yet. Add email addresses here now; online this becomes invite flow.</div>`;
+  const cloudMembers = typeof getCloudMembers === "function" ? getCloudMembers() : [];
+  const usingCloudMembers = cloudMembers.length || (typeof canManageCloudMembers === "function" && canManageCloudMembers());
+  const members = usingCloudMembers ? cloudMembers : state.members;
+  const canManageCloud = typeof canManageCloudMembers === "function" && canManageCloudMembers();
+  const countLabel = `${members.length} member${members.length === 1 ? "" : "s"}`;
+  document.getElementById("memberCount").textContent = countLabel;
+  if (!members.length) {
+    memberCards.innerHTML = `<div class="empty-card">${usingCloudMembers ? "No access requests yet. Add a teammate above to pre-approve them for this workspace." : "No teammates yet. Add email addresses here now; online this becomes invite flow."}</div>`;
     return;
   }
-  memberCards.innerHTML = state.members
+  memberCards.innerHTML = members
     .map(
-      (item) => `
+      (item) => {
+        const isCloud = Boolean(item.board_id);
+        const status = item.status || "Active";
+        const role = item.role || "Editor";
+        const email = item.email || "";
+        const memberId = item.id;
+        return `
         <article class="entity-card member-card">
           <div>
-            <span class="lozenge type-pill">${escapeHtml(item.role)}</span>
-            <h3>${escapeHtml(item.name || item.email)}</h3>
-            <p>${escapeHtml(item.email)}</p>
+            <span class="lozenge type-pill">${escapeHtml(role)}</span>
+            <span class="lozenge ${status === "approved" ? "status-ready" : status === "denied" ? "status-blocked" : "status-in-progress"}">${escapeHtml(status)}</span>
+            <h3>${escapeHtml(item.name || email)}</h3>
+            <p>${escapeHtml(email)}</p>
           </div>
           <dl>
-            <div><dt>Status</dt><dd>${escapeHtml(item.status)}</dd></div>
-            <div><dt>Discipline</dt><dd>${escapeHtml(item.discipline || "Unassigned")}</dd></div>
-            <div><dt>Pings</dt><dd>${state.pings.filter((ping) => ping.recipient === item.email || ping.recipient === item.name).length}</dd></div>
+            <div><dt>Status</dt><dd>${escapeHtml(status)}</dd></div>
+            <div><dt>Role</dt><dd>${escapeHtml(role)}</dd></div>
+            <div><dt>Requested</dt><dd>${escapeHtml(formatDate(item.requested_at || item.createdAt))}</dd></div>
           </dl>
-          <button class="row-action" type="button" data-delete-member="${item.id}">Remove</button>
+          ${
+            isCloud && canManageCloud
+              ? `<div class="member-actions">
+                  ${status !== "approved" ? `<button class="row-action" type="button" data-cloud-member-status="${escapeHtml(memberId)}" data-status="approved">Approve</button>` : ""}
+                  ${status !== "denied" ? `<button class="row-action" type="button" data-cloud-member-status="${escapeHtml(memberId)}" data-status="denied">Deny</button>` : ""}
+                  <select data-cloud-member-role="${escapeHtml(memberId)}" aria-label="Member role">
+                    <option value="viewer" ${role === "viewer" ? "selected" : ""}>Viewer</option>
+                    <option value="editor" ${role === "editor" ? "selected" : ""}>Editor</option>
+                    <option value="admin" ${role === "admin" ? "selected" : ""}>Admin</option>
+                  </select>
+                  <button class="row-action" type="button" data-cloud-delete-member="${escapeHtml(memberId)}">Remove</button>
+                </div>`
+              : `<button class="row-action" type="button" data-delete-member="${escapeHtml(memberId)}">Remove</button>`
+          }
         </article>
-      `
+      `;
+      }
     )
     .join("");
 }

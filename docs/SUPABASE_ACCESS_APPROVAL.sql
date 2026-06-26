@@ -120,6 +120,12 @@ with check (
   and role in ('viewer', 'editor')
 );
 
+create policy "admins can invite members"
+on public.board_members
+for insert
+to authenticated
+with check (public.is_board_admin(board_id));
+
 create policy "admins can approve and manage members"
 on public.board_members
 for update

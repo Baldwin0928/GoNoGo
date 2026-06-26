@@ -5,7 +5,7 @@ function submittedForm(event) {
   return target?.form || target?.closest?.("form") || null;
 }
 
-document.addEventListener("submit", (event) => {
+document.addEventListener("submit", async (event) => {
   event.preventDefault();
   const form = submittedForm(event);
 
@@ -262,6 +262,17 @@ document.addEventListener("submit", (event) => {
 
   if (event.target.id === "memberForm") {
     const email = document.getElementById("memberEmail").value.trim();
+    const role = document.getElementById("memberRole").value;
+    if (typeof canManageCloudMembers === "function" && canManageCloudMembers()) {
+      try {
+        await inviteCloudMember({ email, role });
+        event.target.reset();
+      } catch (error) {
+        console.warn("Cloud invite failed.", error);
+        window.alert(error.message || "Could not invite teammate.");
+      }
+      return;
+    }
     const duplicate = state.members.some((item) => item.email.toLowerCase() === email.toLowerCase());
     if (duplicate) {
       window.alert("That email is already in the workspace member list.");
@@ -270,7 +281,7 @@ document.addEventListener("submit", (event) => {
     const item = member(
       email,
       document.getElementById("memberName").value.trim(),
-      document.getElementById("memberRole").value,
+      role,
       document.getElementById("memberDiscipline").value.trim()
     );
     item.id = nextId(state.members);
@@ -282,7 +293,17 @@ document.addEventListener("submit", (event) => {
   }
 });
 
-document.addEventListener("change", (event) => {
+document.addEventListener("change", async (event) => {
+  if (event.target.matches("[data-cloud-member-role]")) {
+    try {
+      await updateCloudMember(event.target.dataset.cloudMemberRole, { role: event.target.value });
+    } catch (error) {
+      console.warn("Cloud member role update failed.", error);
+      window.alert(error.message || "Could not update teammate role.");
+    }
+    return;
+  }
+
   if (event.target.id === "docsBlockSelect") {
     activeDocsObjectId = Number(event.target.value);
     selectedObjectId = activeDocsObjectId;
@@ -669,7 +690,7 @@ document.getElementById("graph").addEventListener("dblclick", (event) => {
   prepareAddBlock(selectedObjectId || Number(document.getElementById("campaignSelect").value));
 });
 
-document.addEventListener("click", (event) => {
+document.addEventListener("click", async (event) => {
   const menu = document.getElementById("nodeContextMenu");
   const customTrigger = event.target.closest(".custom-select-trigger");
   if (customTrigger) {
@@ -912,6 +933,27 @@ document.addEventListener("click", (event) => {
     state.members = state.members.filter((item) => item.id !== Number(event.target.dataset.deleteMember));
     saveState();
     renderAll();
+    return;
+  }
+
+  if (event.target.matches("[data-cloud-member-status]")) {
+    try {
+      await updateCloudMember(event.target.dataset.cloudMemberStatus, { status: event.target.dataset.status });
+    } catch (error) {
+      console.warn("Cloud member update failed.", error);
+      window.alert(error.message || "Could not update teammate access.");
+    }
+    return;
+  }
+
+  if (event.target.matches("[data-cloud-delete-member]")) {
+    if (!window.confirm("Remove this person from the shared workspace?")) return;
+    try {
+      await removeCloudMember(event.target.dataset.cloudDeleteMember);
+    } catch (error) {
+      console.warn("Cloud member removal failed.", error);
+      window.alert(error.message || "Could not remove teammate.");
+    }
     return;
   }
 

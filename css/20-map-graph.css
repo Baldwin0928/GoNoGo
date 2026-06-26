@@ -1167,6 +1167,25 @@ tr:hover td {
   grid-template-columns: repeat(2, 1fr);
 }
 
+.member-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.member-actions select {
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border, var(--jira-border));
+  background: var(--surface, #fff);
+  color: var(--text, var(--jira-text));
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .entity-card dt {
   color: var(--jira-faint);
   font-size: 11px;

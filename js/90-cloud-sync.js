@@ -7,6 +7,7 @@ let cloudApplyingRemote = false;
 let cloudReady = false;
 let cloudLastRemoteAt = "";
 let cloudMembership = null;
+let cloudBoardMembers = [];
 
 function setSyncStatus(label, tone = "local") {
   const status = document.getElementById("syncStatus");
@@ -121,6 +122,95 @@ async function getOrCreateMembership(user) {
   }
 
   return inserted;
+}
+
+function getCloudMembers() {
+  return cloudBoardMembers;
+}
+
+function canManageCloudMembers() {
+  return Boolean(cloudReady && cloudMembership?.role === "admin" && cloudMembership?.status === "approved");
+}
+
+async function loadCloudMembers() {
+  if (!cloudClient || !cloudSession || !cloudMembership) return [];
+  const { data, error } = await cloudClient
+    .from("board_members")
+    .select("id, board_id, user_id, email, role, status, requested_at, approved_at")
+    .eq("board_id", SUPABASE_CONFIG.boardId)
+    .order("requested_at", { ascending: false });
+
+  if (error) {
+    console.warn("Cloud members could not be loaded.", error);
+    cloudBoardMembers = [];
+    return cloudBoardMembers;
+  }
+
+  cloudBoardMembers = data || [];
+  return cloudBoardMembers;
+}
+
+async function inviteCloudMember({ email, role }) {
+  if (!canManageCloudMembers()) {
+    throw new Error("Only approved admins can invite or approve workspace members.");
+  }
+  const normalizedEmail = (email || "").trim().toLowerCase();
+  const normalizedRole = ["admin", "editor", "viewer"].includes((role || "").toLowerCase())
+    ? role.toLowerCase()
+    : "editor";
+  if (!normalizedEmail) throw new Error("Enter an email address.");
+
+  const { data: existing, error: existingError } = await cloudClient
+    .from("board_members")
+    .select("id")
+    .eq("board_id", SUPABASE_CONFIG.boardId)
+    .ilike("email", normalizedEmail)
+    .maybeSingle();
+
+  if (existingError) throw existingError;
+
+  const payload = {
+    board_id: SUPABASE_CONFIG.boardId,
+    email: normalizedEmail,
+    role: normalizedRole,
+    status: "approved",
+    approved_at: new Date().toISOString(),
+    approved_by: cloudSession.user.id
+  };
+
+  const query = existing
+    ? cloudClient.from("board_members").update(payload).eq("id", existing.id)
+    : cloudClient.from("board_members").insert(payload);
+  const { error } = await query;
+  if (error) throw error;
+  await loadCloudMembers();
+  renderAll();
+}
+
+async function updateCloudMember(memberId, updates) {
+  if (!canManageCloudMembers()) {
+    throw new Error("Only approved admins can manage workspace members.");
+  }
+  const payload = { ...updates };
+  if (payload.role) payload.role = payload.role.toLowerCase();
+  if (payload.status === "approved") {
+    payload.approved_at = new Date().toISOString();
+    payload.approved_by = cloudSession.user.id;
+  }
+  const { error } = await cloudClient.from("board_members").update(payload).eq("id", memberId);
+  if (error) throw error;
+  await loadCloudMembers();
+  renderAll();
+}
+
+async function removeCloudMember(memberId) {
+  if (!canManageCloudMembers()) {
+    throw new Error("Only approved admins can remove workspace members.");
+  }
+  const { error } = await cloudClient.from("board_members").delete().eq("id", memberId);
+  if (error) throw error;
+  await loadCloudMembers();
+  renderAll();
 }
 
 function serializableBoardState() {
@@ -238,6 +328,19 @@ function subscribeCloudBoard() {
         setSyncStatus("Synced", "synced");
       }
     )
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "board_members",
+        filter: `board_id=eq.${SUPABASE_CONFIG.boardId}`
+      },
+      async () => {
+        await loadCloudMembers();
+        renderAll();
+      }
+    )
     .subscribe((status) => {
       if (status === "SUBSCRIBED") setSyncStatus("Live", "synced");
     });
@@ -268,6 +371,7 @@ async function handleSignedIn(session) {
   cloudReady = true;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   await loadCloudBoard();
+  await loadCloudMembers();
   subscribeCloudBoard();
   renderAll();
 }
@@ -275,6 +379,7 @@ async function handleSignedIn(session) {
 async function handleSignedOut() {
   cloudSession = null;
   cloudMembership = null;
+  cloudBoardMembers = [];
   cloudReady = false;
   if (cloudChannel && cloudClient) cloudClient.removeChannel(cloudChannel);
   cloudChannel = null;
