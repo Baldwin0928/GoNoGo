@@ -14,6 +14,7 @@ window.onerror = function(message, source, lineno, colno, error) {
   }
 };
 let selectedObjectId = null;
+let selectedDependencyId = null;
 let connectMode = false;
 let connectSourceId = null;
 let contextTargetId = null;
@@ -37,6 +38,7 @@ let activeWorkStatus = "all";
 let activeWorkSort = "updated-desc";
 let mapFocusMode = false;
 let mapInspectorCollapsed = false;
+let linkedMapReturnStack = [];
 
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -76,7 +78,15 @@ function normalizeState(raw) {
         description: String(item.description || ""),
         projectId: Number(item.projectId) || activeProjectId,
         updatedAt: item.updatedAt || item.createdAt || new Date().toISOString(),
-        documentation: normalizeDocumentation(item.documentation)
+        documentation: normalizeDocumentation(item.documentation),
+        isLinkedProjectBlock: Boolean(item.isLinkedProjectBlock),
+        linkedProjectId: item.linkedProjectId ? Number(item.linkedProjectId) : null,
+        linkedMapId: item.linkedMapId ? Number(item.linkedMapId) : null,
+        rollupMode: rollupModes.includes(item.rollupMode) ? item.rollupMode : "required",
+        rollupGateBlockId: item.rollupGateBlockId ? Number(item.rollupGateBlockId) : null,
+        allowManualOverride: Boolean(item.allowManualOverride),
+        manualOverride: Boolean(item.manualOverride),
+        requiredForReadiness: item.requiredForReadiness !== false
       }))
     : [];
   const objectIds = new Set(objects.map((item) => item.id));
@@ -91,7 +101,8 @@ function normalizeState(raw) {
         parentId: Number(link.parentId),
         childId: Number(link.childId),
         relationshipType: relationshipTypes.includes(link.relationshipType) ? link.relationshipType : "requires",
-        notes: String(link.notes || "")
+        notes: String(link.notes || ""),
+        requiredForReadiness: link.requiredForReadiness !== false
       }))
     : [];
   return {

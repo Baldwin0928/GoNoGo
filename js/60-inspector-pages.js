@@ -125,9 +125,13 @@ function renderObjects() {
 }
 
 function statusSelect(item) {
+  const rollup = getLinkedRollup(item);
+  const disabled = rollup && !item.allowManualOverride ? "disabled" : "";
+  const title = rollup && !item.allowManualOverride ? "Status is synced from linked project." : "";
+  const currentStatus = rollup ? rollup.status : item.status;
   return `
-    <select class="inline-status" data-status-id="${item.id}">
-      ${statuses.map((status) => `<option value="${escapeHtml(status)}" ${status === item.status ? "selected" : ""}>${escapeHtml(status)}</option>`).join("")}
+    <select class="inline-status" data-status-id="${item.id}" ${disabled} title="${escapeHtml(title)}">
+      ${statuses.map((status) => `<option value="${escapeHtml(status)}" ${status === currentStatus ? "selected" : ""}>${escapeHtml(status)}</option>`).join("")}
     </select>
   `;
 }
@@ -507,7 +511,7 @@ function renderNextActions(blockers) {
 function readinessRow(item) {
   return `
     <tr>
-      <td class="name-cell"><strong>${escapeHtml(item.object.name)}</strong><span>${escapeHtml(item.link.relationshipType)} via ${escapeHtml(byId(item.link.parentId)?.name || "Unknown")}</span></td>
+      <td class="name-cell"><strong>${escapeHtml(item.object.name)}</strong><span>${escapeHtml(item.link.relationshipType)} via ${escapeHtml(byId(item.link.parentId)?.name || "Unknown")}${getLinkedRollup(item.object) ? ` - ${getLinkedRollup(item.object).readinessPercent}% linked readiness` : ""}</span></td>
       <td><span class="lozenge type-pill">${escapeHtml(item.object.type)}</span></td>
       <td>${statusSelect(item.object)}</td>
       <td>${ownerInput(item.object)}</td>

@@ -7,8 +7,8 @@ function renderGraph(root, deps) {
   
   const allowedIds = new Set([root.id]);
   deps.forEach((item) => {
-    if (filter === "blockers" && readyStatuses.has(item.object.status)) return;
-    if (filter === "ready" && !readyStatuses.has(item.object.status)) return;
+    if (filter === "blockers" && readyStatuses.has(effectiveObjectStatus(item.object))) return;
+    if (filter === "ready" && !readyStatuses.has(effectiveObjectStatus(item.object))) return;
     allowedIds.add(item.object.id);
     allowedIds.add(item.link.parentId);
   });
@@ -52,7 +52,12 @@ function renderGraph(root, deps) {
           const startY = blocker.y + NODE_CENTER_Y;
           const curve = Math.max(44, Math.abs(hubX - startX) * 0.35);
           const isHighlight = selectedSet.size === 0 || (highlightSet.has(link.parentId) && highlightSet.has(link.childId));
-          return `<path class="graph-line graph-line-feeder${isHighlight ? "" : " dimmed"}" d="M ${startX} ${startY} C ${startX + curve} ${startY}, ${hubX - curve} ${hubY}, ${hubX} ${hubY}" />`;
+          const isSelectedEdge = Number(link.id) === Number(selectedDependencyId);
+          const pathD = `M ${startX} ${startY} C ${startX + curve} ${startY}, ${hubX - curve} ${hubY}, ${hubX} ${hubY}`;
+          return `
+            <path class="graph-line graph-line-feeder${isHighlight ? "" : " dimmed"}${isSelectedEdge ? " selected-edge" : ""}" data-dependency-id="${link.id}" d="${pathD}" />
+            <path class="graph-line-hit" data-dependency-id="${link.id}" d="${pathD}" />
+          `;
         }).join("");
         const groupHighlight = selectedSet.size === 0 || highlightSet.has(Number(blockedId));
         return `
@@ -83,8 +88,10 @@ function renderGraph(root, deps) {
         const midX = (startX + endX) / 2;
         const midY = isLongEdge ? Math.max(startY, endY) + 110 : (startY + endY) / 2 - 6;
         
+        const isSelectedEdge = Number(link.id) === Number(selectedDependencyId);
         return `
-          <path class="graph-line${isHighlight ? "" : " dimmed"}" d="${pathD}" marker-end="url(#arrow)" />
+          <path class="graph-line${isHighlight ? "" : " dimmed"}${isSelectedEdge ? " selected-edge" : ""}" data-dependency-id="${link.id}" d="${pathD}" marker-end="url(#arrow)" />
+          <path class="graph-line-hit" data-dependency-id="${link.id}" d="${pathD}" />
           <text class="edge-label${isHighlight ? "" : " dimmed"}" x="${midX}" y="${midY}">blocks</text>
         `;
       }).join("");
@@ -94,7 +101,10 @@ function renderGraph(root, deps) {
   const nodeMarkup = uniqueNodes
     .map((item) => {
       const pos = positions.get(item.id);
-      const isReady = readyStatuses.has(item.status);
+      const rollup = getLinkedRollup(item);
+      const displayStatus = rollup?.status || item.status;
+      const readinessPercent = rollup ? `${rollup.readinessPercent}% ready` : "";
+      const isReady = readyStatuses.has(displayStatus);
       const isSelected = selectedObjectIds.has(item.id) || item.id === selectedObjectId;
       const isHighlight = selectedSet.size === 0 || highlightSet.has(item.id);
       const isSource = item.id === connectSourceId;
@@ -102,13 +112,14 @@ function renderGraph(root, deps) {
         "graph-node",
         isReady ? "ready" : "blocker",
         item.type.toLowerCase().replaceAll("/", "-").replaceAll(" ", "-"),
+        rollup ? "linked-project-node" : "",
         isSelected ? "selected" : "",
         !isHighlight ? "dimmed" : "",
         isSource ? "connect-source" : "",
         connectMode && !isSource ? "connect-target" : ""
       ].join(" ");
       const blockers = state.dependencies.filter((link) => link.parentId === item.id).length;
-      const statusClass = nodeStatusClass(item.status);
+      const statusClass = nodeStatusClass(displayStatus);
       const chip = nodeTypeChipLayout(item.type);
       const countMarkup = blockers > 0
         ? `<text class="node-count" x="${NODE_WIDTH - NODE_PAD_X}" y="${chip.textY}">${blockers}</text>`
@@ -129,7 +140,8 @@ function renderGraph(root, deps) {
           ${countMarkup}
           <text class="node-title" x="${NODE_PAD_X}" y="${NODE_TITLE_Y}">${escapeSvg(shorten(item.name, 24))}</text>
           <circle class="status-dot" cx="${NODE_PAD_X + 4}" cy="${NODE_DOT_CY}" r="3"></circle>
-          <text class="meta" x="${NODE_PAD_X + 12}" y="${NODE_META_Y}">${escapeSvg(item.status)} - ${escapeSvg(item.owner || "Unassigned")}</text>
+          <text class="meta" x="${NODE_PAD_X + 12}" y="${NODE_META_Y}">${escapeSvg(displayStatus)} - ${escapeSvg(item.owner || "Unassigned")}</text>
+          ${rollup ? `<text class="linked-meta" x="${NODE_PAD_X}" y="${NODE_META_Y + 13}">Linked project - ${escapeSvg(readinessPercent)} - ${rollup.blockerCount} blockers</text>` : ""}
           <circle class="connect-handle output" data-handle="source" cx="${NODE_WIDTH}" cy="${NODE_CENTER_Y}" r="5"></circle>
           <circle class="connect-handle input" data-handle="target" cx="0" cy="${NODE_CENTER_Y}" r="5"></circle>
         </g>
@@ -156,11 +168,37 @@ function renderGraph(root, deps) {
 }
 
 function renderInspector() {
+  const selectedDependency = state.dependencies.find((link) => Number(link.id) === Number(selectedDependencyId));
   const item = byId(selectedObjectId);
   const inspector = document.getElementById("inspectorContent");
   const typeLabel = document.getElementById("selectedType");
+  const returnMarkup = linkedMapReturnStack.length ? `<div class="linked-return-card"><button class="button secondary full-width" type="button" data-return-linked-map="true">Back to parent map</button></div>` : "";
+  if (selectedDependency && inspector) {
+    const blocked = byId(selectedDependency.parentId);
+    const blocker = byId(selectedDependency.childId);
+    if (typeLabel) typeLabel.textContent = "Connection";
+    inspector.innerHTML = `${returnMarkup}
+      <div class="selected-card dependency-selected-card">
+        <span class="lozenge type-pill">Connection</span>
+        <h3>${escapeHtml(blocker?.name || "Missing blocker")} -> ${escapeHtml(blocked?.name || "Missing blocked item")}</h3>
+        <p>${escapeHtml(selectedDependency.relationshipType || "requires")}</p>
+      </div>
+      <div class="mini-list selected-target-list">
+        <strong>Flow</strong>
+        <span>Blocker <small>${escapeHtml(blocker?.name || "Missing blocker")}</small></span>
+        <span>Blocked item <small>${escapeHtml(blocked?.name || "Missing blocked item")}</small></span>
+      </div>
+      ${selectedDependency.notes ? `<div class="empty-card">${escapeHtml(selectedDependency.notes)}</div>` : ""}
+      <div class="quick-actions">
+        <button class="button danger" type="button" data-delete-dependency="${selectedDependency.id}">Delete connection</button>
+        <button class="button secondary" type="button" data-clear-edge-selection="true">Clear selection</button>
+      </div>
+    `;
+    return;
+  }
+  if (selectedDependencyId && !selectedDependency) selectedDependencyId = null;
   if (!item || !inspector) {
-    if (inspector) inspector.innerHTML = `<div class="empty-card">Select a block on the map.</div>`;
+    if (inspector) inspector.innerHTML = `${returnMarkup}<div class="empty-card">Select a block on the map.</div>`;
     if (typeLabel) typeLabel.textContent = "None";
     return;
   }
@@ -169,7 +207,7 @@ function renderInspector() {
   const multiSelected = selectedObjects();
   if (multiSelected.length > 1) {
     typeLabel.textContent = `${multiSelected.length} selected`;
-    inspector.innerHTML = `
+    inspector.innerHTML = `${returnMarkup}
       <div class="selected-card multi-selected-card">
         <span class="lozenge type-pill">Multi-select</span>
         <h3>${multiSelected.length} blocks selected</h3>
@@ -189,18 +227,65 @@ function renderInspector() {
   typeLabel.textContent = item.type;
   const requiredBy = state.dependencies.filter((link) => link.childId === item.id).map((link) => byId(link.parentId)).filter(Boolean);
   const requires = state.dependencies.filter((link) => link.parentId === item.id).map((link) => byId(link.childId)).filter(Boolean);
-  const status = blockColor(item.status);
+  const status = blockColor(effectiveObjectStatus(item));
   const matchedMember = findMemberForOwner(item.owner);
   const pingCount = state.pings.filter((ping) => ping.objectId === item.id).length;
+  const rollup = getLinkedRollup(item);
+  const displayStatus = rollup?.status || item.status;
+  const displayReadiness = rollup ? `${rollup.readinessPercent}% ready` : "Manual status";
+  const linkedProjects = state.projects.filter((project) => project.id !== Number(item.projectId));
+  const selectedLinkedProjectId = item.linkedProjectId && linkedProjects.some((project) => project.id === Number(item.linkedProjectId)) ? Number(item.linkedProjectId) : linkedProjects[0]?.id || "";
+  const linkedProjectBlocks = selectedLinkedProjectId ? projectObjects(selectedLinkedProjectId) : [];
+  const selectedGateId = linkedGateBlock(item)?.id || linkedProjectBlocks[0]?.id || "";
+  const linkedProjectOptions = linkedProjects.length
+    ? linkedProjects.map((project) => `<option value="${project.id}" ${Number(project.id) === Number(selectedLinkedProjectId) ? "selected" : ""}>${escapeHtml(project.name)} (${escapeHtml(project.key || "Project")})</option>`).join("")
+    : `<option value="">Create another project first</option>`;
+  const gateOptions = linkedProjectBlocks.length
+    ? linkedProjectBlocks.map((block) => `<option value="${block.id}" ${Number(block.id) === Number(selectedGateId) ? "selected" : ""}>${escapeHtml(block.name)} (${escapeHtml(block.type)})</option>`).join("")
+    : `<option value="">No child blocks yet</option>`;
+  const linkedProjectPanel = `
+    <section class="linked-project-panel ${item.isLinkedProjectBlock ? "is-linked" : ""}">
+      <div class="linked-project-head">
+        <div>
+          <strong>Linked project rollup</strong>
+          <span>${item.isLinkedProjectBlock ? "Status is synced from linked project." : "Turn this block into a drill-down map."}</span>
+        </div>
+        <label class="toggle-row compact-toggle"><input type="checkbox" data-linked-enabled="${item.id}" ${item.isLinkedProjectBlock ? "checked" : ""} /> Linked</label>
+      </div>
+      ${item.isLinkedProjectBlock ? `
+        <div class="linked-rollup-summary">
+          <span><strong>${escapeHtml(displayStatus)}</strong><small>${escapeHtml(displayReadiness)}</small></span>
+          <span><strong>${rollup?.blockerCount ?? 0}</strong><small>blockers</small></span>
+          <span><strong>${rollup?.openActions ?? 0}</strong><small>open actions</small></span>
+        </div>
+        <label>Child project
+          <select data-linked-project="${item.id}">${linkedProjectOptions}</select>
+        </label>
+        <label>Rollup rule
+          <select data-rollup-mode="${item.id}">
+            ${rollupModes.map((mode) => `<option value="${mode}" ${mode === item.rollupMode ? "selected" : ""}>${escapeHtml(rollupModeLabel(mode))}</option>`).join("")}
+          </select>
+        </label>
+        <label>Gate block
+          <select data-rollup-gate="${item.id}" ${item.rollupMode === "all" ? "disabled" : ""}>${gateOptions}</select>
+        </label>
+        <div class="quick-actions compact-actions">
+          <button class="button secondary" type="button" data-open-linked-map="${item.id}" ${item.linkedProjectId ? "" : "disabled"}>Open linked map</button>
+          <button class="button secondary" type="button" data-unlink-project="${item.id}">Unlink</button>
+        </div>
+        ${rollup?.warning ? `<div class="form-hint warning-hint">${escapeHtml(rollup.warning)}</div>` : ""}
+      ` : `<div class="form-hint">Link this block to another project/map when its detailed work should drive this parent status.</div>`}
+    </section>
+  `;
   const docs = ensureDocumentation(item);
   const openActions = docs.actionItems.filter((action) => !action.done);
   const latestUpdate = docs.updates[0];
   const latestActivity = (state.activity || []).find((event) => Number(event.objectId) === Number(item.id));
-  inspector.innerHTML = `
+  inspector.innerHTML = `${returnMarkup}
     <div class="selected-card" style="border-left-color:${status.border};">
       <span class="lozenge type-pill">${escapeHtml(item.type)}</span>
       <h3>${escapeHtml(item.name)}</h3>
-      <p>${escapeHtml(item.status)} - ${escapeHtml(item.owner || "Unassigned")}</p>
+      <p>${escapeHtml(displayStatus)} - ${escapeHtml(item.owner || "Unassigned")}${rollup ? ` - ${rollup.readinessPercent}% linked readiness` : ""}</p>
     </div>
     <label>Name<input data-edit-name="${item.id}" value="${escapeHtml(item.name)}" /></label>
     <div class="two-col">
@@ -208,6 +293,7 @@ function renderInspector() {
       <label>Owner${ownerInput(item)}</label>
     </div>
     <label>Notes<input data-edit-description="${item.id}" value="${escapeHtml(item.description || "")}" /></label>
+    ${linkedProjectPanel}
     <div class="owner-assignment">
       <div>
         <strong>${escapeHtml(matchedMember?.name || item.owner || "No owner assigned")}</strong>

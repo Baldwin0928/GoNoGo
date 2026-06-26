@@ -319,6 +319,88 @@ document.addEventListener("change", (event) => {
     document.getElementById("dependsOnWrap").classList.toggle("is-hidden", !event.target.checked);
   }
 
+
+  if (event.target.matches("[data-linked-enabled]")) {
+    const item = byId(event.target.dataset.linkedEnabled);
+    if (!item) return;
+    const enable = event.target.checked;
+    const fallbackProject = state.projects.find((project) => project.id !== Number(item.projectId));
+    if (enable && !fallbackProject) {
+      window.alert("Create another project first, then link this block to it.");
+      event.target.checked = false;
+      return;
+    }
+    if (enable && wouldCreateLinkedProjectCycle(item.projectId, fallbackProject.id, item.id)) {
+      window.alert("That linked project would create a circular project rollup.");
+      event.target.checked = false;
+      return;
+    }
+    rememberState();
+    item.isLinkedProjectBlock = enable;
+    if (enable) {
+      item.linkedProjectId = item.linkedProjectId || fallbackProject.id;
+      item.rollupMode = item.rollupMode || "required";
+      item.rollupGateBlockId = linkedGateBlock(item)?.id || projectCampaigns(item.linkedProjectId)[0]?.id || null;
+      item.linkedMapId = item.rollupGateBlockId;
+    } else {
+      item.linkedProjectId = null;
+      item.linkedMapId = null;
+      item.rollupGateBlockId = null;
+      item.manualOverride = false;
+    }
+    touchObject(item);
+    logActivity(item.id, enable ? "Linked project enabled" : "Linked project disabled", enable ? state.projects.find((project) => project.id === Number(item.linkedProjectId))?.name || "" : "");
+    saveState();
+    renderAll();
+    return;
+  }
+
+  if (event.target.matches("[data-linked-project]")) {
+    const item = byId(event.target.dataset.linkedProject);
+    const linkedProjectId = Number(event.target.value);
+    if (!item || !linkedProjectId) return;
+    if (wouldCreateLinkedProjectCycle(item.projectId, linkedProjectId, item.id)) {
+      window.alert("That linked project would create a circular project rollup.");
+      renderAll();
+      return;
+    }
+    rememberState();
+    item.isLinkedProjectBlock = true;
+    item.linkedProjectId = linkedProjectId;
+    item.rollupGateBlockId = projectCampaigns(linkedProjectId)[0]?.id || projectObjects(linkedProjectId)[0]?.id || null;
+    item.linkedMapId = item.rollupGateBlockId;
+    touchObject(item);
+    logActivity(item.id, "Linked project changed", state.projects.find((project) => project.id === linkedProjectId)?.name || "");
+    saveState();
+    renderAll();
+    return;
+  }
+
+  if (event.target.matches("[data-rollup-mode]")) {
+    const item = byId(event.target.dataset.rollupMode);
+    if (!item) return;
+    rememberState();
+    item.rollupMode = rollupModes.includes(event.target.value) ? event.target.value : "required";
+    touchObject(item);
+    logActivity(item.id, "Rollup rule changed", rollupModeLabel(item.rollupMode));
+    saveState();
+    renderAll();
+    return;
+  }
+
+  if (event.target.matches("[data-rollup-gate]")) {
+    const item = byId(event.target.dataset.rollupGate);
+    const gate = byId(event.target.value);
+    if (!item || !gate || gate.projectId !== Number(item.linkedProjectId)) return;
+    rememberState();
+    item.rollupGateBlockId = gate.id;
+    item.linkedMapId = gate.id;
+    touchObject(item);
+    logActivity(item.id, "Rollup gate changed", gate.name);
+    saveState();
+    renderAll();
+    return;
+  }
   if (event.target.matches("[data-status-id]")) {
     const item = byId(event.target.dataset.statusId);
     if (!item) return;
@@ -411,6 +493,8 @@ document.addEventListener("pointerdown", (event) => {
 
   const graphNode = event.target.closest("[data-node-id]");
   const handle = event.target.closest("[data-handle]");
+  const graphEdge = event.target.closest("[data-dependency-id]");
+  if (graphEdge && !graphNode) return;
   
   // Start panning if we middle click anywhere, or left click on the empty canvas background
   if (isMiddleClick || (!graphNode && event.target.closest("svg"))) {
@@ -500,7 +584,14 @@ document.addEventListener("pointerup", (event) => {
 });
 
 document.getElementById("graph").addEventListener("dblclick", (event) => {
-  if (event.target.closest("[data-node-id]")) return;
+  const graphNode = event.target.closest("[data-node-id]");
+  if (graphNode) {
+    const item = byId(graphNode.dataset.nodeId);
+    if (item?.isLinkedProjectBlock && item.linkedProjectId) {
+      openLinkedMap(item);
+    }
+    return;
+  }
   const point = graphPoint(event);
   if (!point) return;
   pendingBlockPosition = { x: point.x - 94, y: point.y - 38 };
@@ -558,6 +649,39 @@ document.addEventListener("click", (event) => {
 
   if (event.target.matches("[data-ping-owner]")) {
     pingOwner(Number(event.target.dataset.pingOwner));
+    return;
+  }
+
+
+  if (event.target.matches("[data-open-linked-map]")) {
+    const item = byId(event.target.dataset.openLinkedMap);
+    openLinkedMap(item);
+    return;
+  }
+
+  if (event.target.matches("[data-return-linked-map]")) {
+    returnFromLinkedMap();
+    return;
+  }
+
+  if (event.target.matches("[data-unlink-project]")) {
+    const item = byId(event.target.dataset.unlinkProject);
+    if (!item) return;
+    rememberState();
+    item.isLinkedProjectBlock = false;
+    item.linkedProjectId = null;
+    item.linkedMapId = null;
+    item.rollupGateBlockId = null;
+    item.manualOverride = false;
+    touchObject(item);
+    logActivity(item.id, "Linked project removed", "");
+    saveState();
+    renderAll();
+    return;
+  }
+  if (event.target.matches("[data-clear-edge-selection]")) {
+    selectedDependencyId = null;
+    renderAll();
     return;
   }
 
@@ -633,6 +757,7 @@ document.addEventListener("click", (event) => {
     state.activeProjectId = Number(event.target.dataset.openProject);
     const firstCampaign = projectCampaigns()[0];
     selectedObjectId = firstCampaign?.id || null;
+    selectedDependencyId = null;
     selectedObjectIds = selectedObjectId ? new Set([selectedObjectId]) : new Set();
     saveState();
     showPage("map");
@@ -657,6 +782,7 @@ document.addEventListener("click", (event) => {
   if (event.target.id === "contextConnectBlock") {
     menu?.setAttribute("hidden", "");
     connectMode = true;
+    selectedDependencyId = null;
     connectSourceId = contextTargetId;
     const button = document.getElementById("connectModeBtn");
     button.classList.add("active");
@@ -697,9 +823,21 @@ document.addEventListener("click", (event) => {
 
   if (event.target.matches("[data-connect-from]")) {
     connectMode = true;
+    selectedDependencyId = null;
     connectSourceId = Number(event.target.dataset.connectFrom);
     document.getElementById("connectModeBtn").classList.add("active");
     document.getElementById("connectModeBtn").textContent = "Pick blocked item";
+    renderAll();
+    return;
+  }
+
+  const graphEdge = event.target.closest("[data-dependency-id]");
+  if (graphEdge && !event.target.closest("[data-node-id]")) {
+    selectedDependencyId = Number(graphEdge.dataset.dependencyId);
+    selectedObjectId = null;
+    selectedObjectIds = new Set();
+    activeInspectorTab = "selected";
+    showInspectorTab("selected");
     renderAll();
     return;
   }
@@ -710,6 +848,7 @@ document.addEventListener("click", (event) => {
     const handle = event.target.closest("[data-handle]");
     if (handle) {
       if (handle.dataset.handle === "source") {
+        selectedDependencyId = null;
         if (selectedObjectIds.size > 1 && !selectedObjectIds.has(nodeId)) {
           connectBlockToTargets(nodeId, Array.from(selectedObjectIds));
           selectedObjectId = nodeId;
@@ -740,6 +879,7 @@ document.addEventListener("click", (event) => {
       return;
     }
     if (connectMode) {
+      selectedDependencyId = null;
       if (!connectSourceId) {
         connectSourceId = nodeId;
       } else if (connectSourceId === nodeId) {
@@ -772,6 +912,7 @@ document.addEventListener("click", (event) => {
     const id = Number(event.target.dataset.deleteDependency);
     rememberState();
     state.dependencies = state.dependencies.filter((link) => link.id !== id);
+    if (Number(selectedDependencyId) === id) selectedDependencyId = null;
     saveState();
     renderAll();
   }
@@ -781,6 +922,7 @@ document.getElementById("seedBtn").addEventListener("click", () => {
   rememberState();
   state = normalizeSeed(seedState);
   selectedObjectId = 1;
+  selectedDependencyId = null;
   selectedObjectIds = new Set([1]);
   connectMode = false;
   connectSourceId = null;
@@ -794,6 +936,7 @@ document.getElementById("clearBoardBtn").addEventListener("click", () => {
   rememberState();
   state = blankBoard();
   selectedObjectId = 1;
+  selectedDependencyId = null;
   selectedObjectIds = new Set([1]);
   connectMode = false;
   connectSourceId = null;
@@ -807,6 +950,7 @@ document.getElementById("redoBtn").addEventListener("click", redo);
 
 document.getElementById("focusCampaignBtn").addEventListener("click", () => {
   selectedObjectId = Number(document.getElementById("campaignSelect").value);
+  selectedDependencyId = null;
   selectedObjectIds = new Set([selectedObjectId]);
   renderAll();
   setTimeout(focusSelectedNode, 0);
@@ -814,6 +958,7 @@ document.getElementById("focusCampaignBtn").addEventListener("click", () => {
 
 document.getElementById("connectModeBtn").addEventListener("click", () => {
   connectMode = !connectMode;
+  selectedDependencyId = null;
   connectSourceId = null;
   document.getElementById("connectModeBtn").classList.toggle("active", connectMode);
   document.getElementById("connectModeBtn").textContent = connectMode ? "Pick blocker first" : "Connect blocks";

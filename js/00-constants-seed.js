@@ -4,6 +4,7 @@ const STORAGE_KEY = "gtpl-readiness-v1";
 const objectTypes = ["Project", "Campaign", "Hardware", "Document", "Review", "Task", "Test", "Person/Team"];
 const statuses = ["Not Started", "In Progress", "Blocked", "Ready", "Complete", "Needs Review", "Invalidated", "Unknown"];
 const relationshipTypes = ["requires", "blocks", "invalidates", "owns", "verifies", "depends_on", "derived_from", "replaces", "supersedes", "affects"];
+const rollupModes = ["required", "all", "gate", "manual"];
 const readyStatuses = new Set(["Ready", "Complete"]);
 const SNAP_GRID = 24;
 const SNAP_DISTANCE = 14;
@@ -58,7 +59,15 @@ function object(name, type, status, owner, description) {
     owner,
     description,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    isLinkedProjectBlock: false,
+    linkedProjectId: null,
+    linkedMapId: null,
+    rollupMode: "required",
+    rollupGateBlockId: null,
+    allowManualOverride: false,
+    manualOverride: false,
+    requiredForReadiness: true
   };
 }
 
@@ -69,7 +78,8 @@ function dependency(parentId, childId, relationshipType, notes) {
     childId,
     relationshipType,
     notes,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    requiredForReadiness: true
   };
 }
 

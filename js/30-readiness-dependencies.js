@@ -1,6 +1,6 @@
 // Split from app.js - dependency traversal, readiness calculation, select population, dropdown helpers
 function directDependencies(parentId) {
-  return state.dependencies.filter((link) => link.parentId === Number(parentId));
+  return state.dependencies.filter((link) => link.parentId === Number(parentId) && link.requiredForReadiness !== false);
 }
 
 function collectDependencies(rootId) {
@@ -32,12 +32,130 @@ function collectDependencies(rootId) {
 
 function calculateReadiness(rootId) {
   const dependencies = collectDependencies(rootId);
-  const ready = dependencies.filter((item) => readyStatuses.has(item.object.status));
-  const blockers = dependencies.filter((item) => !readyStatuses.has(item.object.status));
+  const ready = dependencies.filter((item) => readyStatuses.has(effectiveObjectStatus(item.object)));
+  const blockers = dependencies.filter((item) => !readyStatuses.has(effectiveObjectStatus(item.object)));
   const score = dependencies.length ? ready.length / dependencies.length : 1;
   return { dependencies, ready, blockers, score, isReady: blockers.length === 0 };
 }
 
+function linkedGateBlock(item) {
+  if (!item?.linkedProjectId) return null;
+  const gateId = Number(item.rollupGateBlockId || item.linkedMapId);
+  const explicitGate = gateId ? byId(gateId) : null;
+  if (explicitGate && explicitGate.projectId === Number(item.linkedProjectId)) return explicitGate;
+  return projectCampaigns(item.linkedProjectId)[0] || projectObjects(item.linkedProjectId)[0] || null;
+}
+
+function inferRollupStatus(items, blockers) {
+  if (!items.length) return "Unknown";
+  if (!blockers.length) return "Ready";
+  const statuses = items.map((entry) => effectiveObjectStatus(entry.object || entry));
+  if (statuses.some((status) => status === "Blocked" || status === "Invalidated")) return "Blocked";
+  if (statuses.some((status) => status === "In Progress" || status === "Needs Review" || readyStatuses.has(status))) return "In Progress";
+  return "Not Started";
+}
+
+function getLinkedRollup(item, seen = new Set()) {
+  if (!item?.isLinkedProjectBlock || !item.linkedProjectId || item.rollupMode === "manual" || item.manualOverride) return null;
+  const childProject = state.projects.find((project) => project.id === Number(item.linkedProjectId));
+  if (!childProject) return null;
+  const cycleKey = `${item.projectId}:${item.linkedProjectId}:${item.id}`;
+  if (seen.has(cycleKey)) {
+    return { status: "Blocked", score: 0, blockers: [], blockerCount: 0, isReady: false, warning: "Linked project cycle detected." };
+  }
+  seen.add(cycleKey);
+
+  const childObjects = projectObjects(item.linkedProjectId);
+  const gate = linkedGateBlock(item);
+  let score = 0;
+  let blockers = [];
+  let status = "Unknown";
+  let dependencies = [];
+
+  if (item.rollupMode === "all") {
+    const counted = childObjects.filter((object) => object.requiredForReadiness !== false);
+    const ready = counted.filter((object) => readyStatuses.has(effectiveObjectStatus(object, seen)));
+    blockers = counted.filter((object) => !readyStatuses.has(effectiveObjectStatus(object, seen)));
+    score = counted.length ? ready.length / counted.length : 1;
+    status = inferRollupStatus(counted, blockers);
+    dependencies = counted.map((object) => ({ object, depth: 1 }));
+  } else if (item.rollupMode === "gate") {
+    const gateStatus = gate ? effectiveObjectStatus(gate, seen) : "Unknown";
+    score = readyStatuses.has(gateStatus) ? 1 : 0;
+    blockers = gate && !readyStatuses.has(gateStatus) ? [{ object: gate, depth: 0 }] : [];
+    status = gateStatus;
+    dependencies = gate ? [{ object: gate, depth: 0 }] : [];
+  } else if (gate) {
+    const readiness = calculateReadiness(gate.id);
+    dependencies = readiness.dependencies.length ? readiness.dependencies : [{ object: gate, depth: 0 }];
+    blockers = readiness.dependencies.length ? readiness.blockers : (readyStatuses.has(effectiveObjectStatus(gate, seen)) ? [] : [{ object: gate, depth: 0 }]);
+    score = readiness.dependencies.length ? readiness.score : (blockers.length ? 0 : 1);
+    status = blockers.length ? inferRollupStatus(dependencies, blockers) : "Ready";
+  }
+
+  const docs = childObjects.map((object) => ensureDocumentation(object));
+  const openActions = docs.reduce((sum, doc) => sum + doc.actionItems.filter((action) => !action.done).length, 0);
+  const staleItems = childObjects.filter((object) => isStale(object)).length;
+  const lastUpdated = childObjects
+    .map((object) => new Date(object.updatedAt || object.createdAt || 0).getTime())
+    .filter((time) => Number.isFinite(time));
+
+  return {
+    childProject,
+    gate,
+    dependencies,
+    status,
+    score,
+    readinessPercent: Math.round(score * 100),
+    blockers,
+    blockerCount: blockers.length,
+    openActions,
+    staleItems,
+    lastUpdated: lastUpdated.length ? new Date(Math.max(...lastUpdated)).toISOString() : "",
+    isReady: blockers.length === 0 && readyStatuses.has(status)
+  };
+}
+
+function effectiveObjectStatus(item, seen = new Set()) {
+  const rollup = getLinkedRollup(item, seen);
+  return rollup?.status || item?.status || "Unknown";
+}
+
+function effectiveReadinessPercent(item) {
+  const rollup = getLinkedRollup(item);
+  return rollup ? rollup.readinessPercent : null;
+}
+
+function rollupModeLabel(mode) {
+  if (mode === "all") return "All blocks ready";
+  if (mode === "gate") return "Specific gate block ready";
+  if (mode === "manual") return "Manual override";
+  return "All required blockers ready";
+}
+
+function wouldCreateLinkedProjectCycle(sourceProjectId, targetProjectId, objectId = null) {
+  const source = Number(sourceProjectId);
+  const target = Number(targetProjectId);
+  if (!source || !target || source === target) return true;
+  const edges = state.objects
+    .filter((item) => item.isLinkedProjectBlock && item.linkedProjectId && Number(item.id) !== Number(objectId))
+    .map((item) => [Number(item.projectId), Number(item.linkedProjectId)]);
+  edges.push([source, target]);
+  const graph = edges.reduce((map, [from, to]) => {
+    const list = map.get(from) || [];
+    list.push(to);
+    map.set(from, list);
+    return map;
+  }, new Map());
+  const seen = new Set();
+  function visit(projectId) {
+    if (projectId === source) return true;
+    if (seen.has(projectId)) return false;
+    seen.add(projectId);
+    return (graph.get(projectId) || []).some(visit);
+  }
+  return visit(target);
+}
 function populateSelect(select, options, valueMapper = (item) => item, labelMapper = (item) => item) {
   select.innerHTML = options.map((item) => `<option value="${escapeHtml(valueMapper(item))}">${escapeHtml(labelMapper(item))}</option>`).join("");
 }

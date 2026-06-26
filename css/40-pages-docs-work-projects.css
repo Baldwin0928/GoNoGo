@@ -302,7 +302,7 @@
 }
 
 #workPage .owned-work-panel .work-list {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -388,9 +388,9 @@
   color: #89909b;
 }
 
-@media (min-width: 1720px) {
+@media (max-width: 1280px) {
   #workPage .owned-work-panel .work-list {
-    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -401,6 +401,10 @@
 
   #workPage .work-section-actions {
     justify-content: stretch;
+  }
+
+  #workPage .owned-work-panel .work-list {
+    grid-template-columns: 1fr;
   }
 
   #workPage .work-section-actions select {
@@ -864,4 +868,23 @@
   justify-content: center;
   min-height: 40px;
   line-height: 1;
+}
+
+/* Current pass: owned work should scan as three cards on desktop. */
+@media (min-width: 1080px) {
+  #workPage .owned-work-panel .work-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1079px) {
+  #workPage .owned-work-panel .work-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  #workPage .owned-work-panel .work-list {
+    grid-template-columns: 1fr;
+  }
 }

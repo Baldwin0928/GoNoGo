@@ -276,3 +276,96 @@ body[data-theme="dark"] .topbar {
   pointer-events: none;
 }
 
+.graph-line-hit {
+  fill: none;
+  stroke: rgba(0, 0, 0, 0);
+  stroke-width: 18;
+  cursor: pointer;
+  pointer-events: stroke;
+}
+
+.graph-line.selected-edge {
+  stroke: #111111;
+  stroke-width: 3.4;
+  opacity: 1;
+}
+
+
+/* Linked project blocks / nested map rollups. */
+.graph-node.linked-project-node .node-body {
+  stroke-dasharray: 5 5;
+}
+
+.graph-node .linked-meta {
+  fill: #667085;
+  font-size: 9.5px;
+  font-weight: 650;
+}
+
+.linked-project-panel,
+.linked-return-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(20, 20, 20, 0.06);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 10px 24px rgba(20, 20, 20, 0.035);
+}
+
+.linked-project-panel.is-linked {
+  background: linear-gradient(180deg, rgba(246, 250, 255, 0.86), rgba(255, 255, 255, 0.78));
+}
+
+.linked-project-head,
+.linked-rollup-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.linked-project-head div,
+.linked-rollup-summary span {
+  display: grid;
+  gap: 3px;
+}
+
+.linked-project-head span,
+.linked-rollup-summary small {
+  color: var(--dash-muted, #667085);
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+.compact-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: auto;
+  margin: 0;
+  color: var(--dash-text, #111111);
+  font-weight: 750;
+}
+
+.linked-rollup-summary {
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(20, 20, 20, 0.045);
+}
+
+.linked-rollup-summary strong {
+  color: var(--dash-text, #111111);
+  font-size: 1rem;
+}
+
+.compact-actions {
+  grid-template-columns: 1fr 1fr;
+}
+
+.warning-hint {
+  border-color: rgba(201, 55, 44, 0.16);
+  background: rgba(255, 235, 230, 0.72);
+  color: #9f2c23;
+}

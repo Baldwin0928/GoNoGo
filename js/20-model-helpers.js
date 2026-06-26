@@ -17,6 +17,7 @@ function selectedObjects() {
 function setPrimarySelection(id, append = false) {
   const objectId = Number(id);
   if (!byId(objectId)) return;
+  selectedDependencyId = null;
   if (append) {
     if (selectedObjectIds.has(objectId) && selectedObjectIds.size > 1) {
       selectedObjectIds.delete(objectId);
@@ -71,6 +72,7 @@ function deleteObject(id) {
   rememberState();
   state.objects = state.objects.filter((object) => object.id !== objectId);
   state.dependencies = state.dependencies.filter((link) => link.parentId !== objectId && link.childId !== objectId);
+  if (selectedDependencyId && !state.dependencies.some((link) => Number(link.id) === Number(selectedDependencyId))) selectedDependencyId = null;
   if (state.layout) delete state.layout[objectId];
   if (selectedObjectId === objectId) selectedObjectId = byId(campaignId) ? campaignId : state.objects[0]?.id || null;
   selectedObjectIds.delete(objectId);
@@ -204,6 +206,42 @@ function focusSelectedNode() {
   renderAll();
 }
 
+
+function openLinkedMap(item) {
+  const gate = linkedGateBlock(item);
+  if (!item?.linkedProjectId) return;
+  linkedMapReturnStack.push({
+    projectId: Number(state.activeProjectId),
+    campaignId: Number(document.getElementById("campaignSelect")?.value) || null,
+    selectedObjectId,
+    panX,
+    panY,
+    graphZoom
+  });
+  state.activeProjectId = Number(item.linkedProjectId);
+  selectedObjectId = gate?.id || projectCampaigns(item.linkedProjectId)[0]?.id || projectObjects(item.linkedProjectId)[0]?.id || null;
+  selectedObjectIds = selectedObjectId ? new Set([selectedObjectId]) : new Set();
+  selectedDependencyId = null;
+  saveState();
+  showPage("map");
+  renderAll();
+  setTimeout(focusSelectedNode, 0);
+}
+
+function returnFromLinkedMap() {
+  const previous = linkedMapReturnStack.pop();
+  if (!previous) return;
+  state.activeProjectId = previous.projectId;
+  selectedObjectId = previous.selectedObjectId || previous.campaignId || null;
+  selectedObjectIds = selectedObjectId ? new Set([selectedObjectId]) : new Set();
+  panX = previous.panX;
+  panY = previous.panY;
+  graphZoom = previous.graphZoom;
+  selectedDependencyId = null;
+  saveState();
+  showPage("map");
+  renderAll();
+}
 function showPage(page) {
   activePage = page;
   if (page !== "map" && mapFocusMode) setMapFocusMode(false);
