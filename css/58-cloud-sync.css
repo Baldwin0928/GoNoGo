@@ -255,6 +255,7 @@ body.auth-locked {
 .auth-locked .app,
 .auth-locked .jira-sidebar,
 .auth-locked .jira-topnav {
+  visibility: hidden;
   pointer-events: none;
   user-select: none;
 }

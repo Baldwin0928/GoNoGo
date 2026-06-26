@@ -6,8 +6,8 @@
     <title>GTPL Readiness</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
-    <section class="cloud-auth-screen" id="cloudAuthScreen" hidden>
+  <body class="auth-locked">
+    <section class="cloud-auth-screen" id="cloudAuthScreen">
       <div class="cloud-auth-stage">
         <form class="cloud-auth-card" id="cloudAuthForm">
           <div class="auth-brand-row">
@@ -17,6 +17,7 @@
           <h1>Project Management</h1>
           <p>Use your team email to open the shared readiness board.</p>
           <label>Email<input id="cloudAuthEmail" type="email" autocomplete="email" placeholder="name@example.com" required /></label>
+          <label id="cloudNameLabel" hidden>Full name<input id="cloudAuthName" type="text" autocomplete="name" placeholder="Your full name" /></label>
           <label id="cloudPasswordLabel">Password<input id="cloudAuthPassword" type="password" autocomplete="current-password" placeholder="Your password" /></label>
           <button class="button" id="cloudAuthSubmitBtn" type="submit">Sign in</button>
           <div class="cloud-auth-actions">
@@ -188,7 +189,7 @@
                   <label>Status<select id="objectStatus"></select></label>
                 </div>
                 <label>Owner<input id="objectOwner" list="memberOwnerOptions" placeholder="Structures" /></label>
-                <label>Notes<input id="objectDescription" placeholder="What does this close out?" /></label>
+                <label>Short description<input id="objectDescription" placeholder="What does this close out?" /></label>
                 <label class="checkline">
                   <input type="checkbox" id="dependsToggle" />
                   <span>Depends on another block</span>
@@ -421,7 +422,6 @@
             <div class="docs-tool-tabs" role="tablist" aria-label="Block documentation tools">
               <button class="docs-tool-tab active" type="button" data-doc-tool-tab="actions">Actions <span id="docsActionCount">0</span></button>
               <button class="docs-tool-tab" type="button" data-doc-tool-tab="links">Links <span id="docsLinkCount">0</span></button>
-              <button class="docs-tool-tab" type="button" data-doc-tool-tab="updates">Updates <span id="docsUpdateCount">0</span></button>
               <button class="docs-tool-tab" type="button" data-doc-tool-tab="comments">Comments <span id="docsCommentCount">0</span></button>
               <button class="docs-tool-tab" type="button" data-doc-tool-tab="revisions">Revisions <span id="docsRevisionCount">0</span></button>
             </div>
@@ -441,14 +441,6 @@
                 <button class="button secondary" type="submit">Add link</button>
               </form>
               <div id="docLinkList" class="doc-list"></div>
-            </div>
-
-            <div class="docs-tool-panel is-hidden" data-doc-tool-panel="updates">
-              <form class="stack-form compact-form" id="docUpdateForm">
-                <label>Update<input id="docUpdateText" placeholder="What changed?" /></label>
-                <button class="button secondary" type="submit">Log update</button>
-              </form>
-              <div id="docUpdateList" class="doc-list"></div>
             </div>
 
             <div class="docs-tool-panel is-hidden" data-doc-tool-panel="comments">
@@ -485,7 +477,7 @@
             <span class="notion-page-icon work-icon" aria-hidden="true">W</span>
             <h2>My Work</h2>
           </div>
-          <p>Owner-focused execution, stale blocks, open actions, and the latest team activity.</p>
+          <p>Owner-focused execution, blocks that need updates, open actions, and the latest team activity.</p>
         </header>
         <section class="command-bar work-command-bar">
           <label class="project-control">
@@ -501,7 +493,7 @@
             <strong id="myActionCount">0</strong>
           </div>
           <div class="metric compact">
-            <span>Stale</span>
+            <span>Needs update</span>
             <strong id="myStaleCount">0</strong>
           </div>
         </section>
@@ -510,7 +502,7 @@
           <section class="panel attention-work-panel">
             <div class="panel-head">
               <h2>Needs attention</h2>
-              <span>Stale or blocked</span>
+              <span>Needs update or blocked</span>
             </div>
             <div id="staleWorkList" class="work-list"></div>
           </section>
@@ -538,7 +530,7 @@
                 </select>
                 <select id="workSortSelect" aria-label="Sort owned blocks">
                   <option value="updated-desc">Recently updated</option>
-                  <option value="stale-first">Stale first</option>
+                  <option value="stale-first">Needs update first</option>
                   <option value="status">Status</option>
                   <option value="owner">Owner</option>
                 </select>

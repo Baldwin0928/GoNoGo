@@ -32,6 +32,43 @@ function cloudUserEmail(user) {
   return (user?.email || "").trim().toLowerCase();
 }
 
+function initialsForName(value) {
+  const clean = String(value || "")
+    .replace(/@.*/, "")
+    .replace(/[^a-zA-Z0-9]+/g, " ")
+    .trim();
+  if (!clean) return "PL";
+  const parts = clean.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] || ""}${parts[parts.length - 1][0] || ""}`.toUpperCase();
+}
+
+function updateSignedInUserChrome(user) {
+  const name = cloudUserName(user);
+  const initials = initialsForName(name);
+  document.querySelectorAll(".avatar").forEach((avatar) => {
+    avatar.textContent = initials;
+    avatar.title = name;
+    avatar.setAttribute("aria-label", `Signed in as ${name}`);
+  });
+}
+
+function authRedirectUrl() {
+  return window.location.href.split("#")[0];
+}
+
+function authEmailErrorMessage(error, fallback) {
+  if (!error) return fallback;
+  const message = error.message || String(error);
+  if (/rate limit/i.test(message)) {
+    return "Supabase email rate limit hit. Wait a bit before sending another link, or sign in with your password.";
+  }
+  if (/redirect/i.test(message)) {
+    return `${message} Check Supabase Auth URL Configuration for this site URL.`;
+  }
+  return message;
+}
+
 function authElements() {
   const card = document.getElementById("cloudAuthForm");
   return {
@@ -41,6 +78,8 @@ function authElements() {
     body: card?.querySelector("p"),
     emailLabel: card?.querySelector("label"),
     emailInput: document.getElementById("cloudAuthEmail"),
+    nameLabel: document.getElementById("cloudNameLabel"),
+    nameInput: document.getElementById("cloudAuthName"),
     passwordLabel: document.getElementById("cloudPasswordLabel"),
     passwordInput: document.getElementById("cloudAuthPassword"),
     submit: document.getElementById("cloudAuthSubmitBtn"),
@@ -60,6 +99,8 @@ function setPasswordSetupScreen(message = "") {
   if (el.body) el.body.textContent = "Choose a password for faster sign-in next time.";
   if (el.emailLabel) el.emailLabel.hidden = true;
   if (el.emailInput) el.emailInput.required = false;
+  if (el.nameLabel) el.nameLabel.hidden = true;
+  if (el.nameInput) el.nameInput.required = false;
   if (el.passwordLabel) el.passwordLabel.hidden = false;
   if (el.passwordInput) {
     el.passwordInput.required = true;
@@ -92,6 +133,8 @@ function showPendingAccessScreen(message) {
   if (el.body) el.body.textContent = "Your email is verified. An admin needs to approve your access before this shared board opens.";
   if (el.emailLabel) el.emailLabel.hidden = true;
   if (el.emailInput) el.emailInput.required = false;
+  if (el.nameLabel) el.nameLabel.hidden = true;
+  if (el.nameInput) el.nameInput.required = false;
   if (el.passwordLabel) el.passwordLabel.hidden = true;
   if (el.passwordInput) el.passwordInput.required = false;
   if (el.submit) el.submit.hidden = true;
@@ -112,12 +155,17 @@ function showPendingAccessScreen(message) {
 
 function resetAuthScreen() {
   const el = authElements();
-  if (el.title) el.title.textContent = "Sign in to GoNoGo";
+  if (el.title) el.title.textContent = "Project Management";
   if (el.body) el.body.textContent = "Use your team email to open the shared readiness board.";
   if (el.emailLabel) el.emailLabel.hidden = false;
   if (el.emailInput) {
     el.emailInput.required = true;
     el.emailInput.disabled = false;
+  }
+  if (el.nameLabel) el.nameLabel.hidden = true;
+  if (el.nameInput) {
+    el.nameInput.required = false;
+    el.nameInput.value = "";
   }
   if (el.passwordLabel) el.passwordLabel.hidden = false;
   if (el.passwordInput) {
@@ -409,6 +457,7 @@ async function handleSignedIn(session) {
   cloudSession = session;
   state.currentUser = cloudUserName(session.user);
   state.currentUserEmail = session.user.email || "";
+  updateSignedInUserChrome(session.user);
   const signOut = document.getElementById("signOutBtn");
   if (signOut) signOut.hidden = false;
   const setPassword = document.getElementById("setPasswordBtn");
@@ -442,6 +491,7 @@ async function handleSignedOut() {
   cloudMembership = null;
   cloudBoardMembers = [];
   cloudReady = false;
+  updateSignedInUserChrome({ user_metadata: { full_name: "Propulsive Landers" } });
   if (cloudChannel && cloudClient) cloudClient.removeChannel(cloudChannel);
   cloudChannel = null;
   const signOut = document.getElementById("signOutBtn");
@@ -521,9 +571,25 @@ document.getElementById("cloudAuthForm")?.addEventListener("submit", async (even
 
 document.getElementById("cloudSignUpBtn")?.addEventListener("click", async () => {
   if (!cloudClient) return;
-  const email = document.getElementById("cloudAuthEmail")?.value.trim();
-  const password = document.getElementById("cloudAuthPassword")?.value || "";
-  const message = document.getElementById("cloudAuthMessage");
+  const el = authElements();
+  const email = el.emailInput?.value.trim();
+  const password = el.passwordInput?.value || "";
+  const fullName = el.nameInput?.value.trim();
+  const message = el.msg;
+  if (el.nameLabel?.hidden) {
+    el.nameLabel.hidden = false;
+    if (el.nameInput) {
+      el.nameInput.required = true;
+      el.nameInput.focus();
+    }
+    if (message) message.textContent = "Enter your full name, email, and password to create an account.";
+    return;
+  }
+  if (!fullName) {
+    if (message) message.textContent = "Enter your full name so teammates know who you are.";
+    el.nameInput?.focus();
+    return;
+  }
   if (!email || !password) {
     if (message) message.textContent = "Enter an email and password to create an account.";
     return;
@@ -536,9 +602,13 @@ document.getElementById("cloudSignUpBtn")?.addEventListener("click", async () =>
   const { error } = await cloudClient.auth.signUp({
     email,
     password,
-    options: { emailRedirectTo: window.location.href.split("#")[0] }
+    options: {
+      emailRedirectTo: authRedirectUrl(),
+      data: { full_name: fullName, name: fullName }
+    }
   });
-  if (message) message.textContent = error ? error.message : "Account created. Check your email if Supabase asks you to confirm it.";
+  if (message) message.textContent = authEmailErrorMessage(error, "Account created. Check your email if Supabase asks you to confirm it.");
+  setSyncStatus(error ? "Email failed" : "Account created", error ? "offline" : "synced");
 });
 
 document.getElementById("cloudMagicLinkBtn")?.addEventListener("click", async () => {
@@ -549,12 +619,13 @@ document.getElementById("cloudMagicLinkBtn")?.addEventListener("click", async ()
     if (message) message.textContent = "Enter your email first.";
     return;
   }
-  setSyncStatus("Email sent", "syncing");
+  setSyncStatus("Sending email", "syncing");
   const { error } = await cloudClient.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: window.location.href.split("#")[0] }
+    options: { emailRedirectTo: authRedirectUrl() }
   });
-  if (message) message.textContent = error ? error.message : "Check your email for the magic sign-in link.";
+  if (message) message.textContent = authEmailErrorMessage(error, "Check your email for the magic sign-in link.");
+  setSyncStatus(error ? "Email failed" : "Email sent", error ? "offline" : "synced");
 });
 
 document.getElementById("cloudResetPasswordBtn")?.addEventListener("click", async () => {
@@ -565,11 +636,12 @@ document.getElementById("cloudResetPasswordBtn")?.addEventListener("click", asyn
     if (message) message.textContent = "Enter your email first.";
     return;
   }
-  setSyncStatus("Reset email sent", "syncing");
+  setSyncStatus("Sending reset", "syncing");
   const { error } = await cloudClient.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.href.split("#")[0]
+    redirectTo: authRedirectUrl()
   });
-  if (message) message.textContent = error ? error.message : "Check your email for the password reset link.";
+  if (message) message.textContent = authEmailErrorMessage(error, "Check your email for the password reset link.");
+  setSyncStatus(error ? "Email failed" : "Reset email sent", error ? "offline" : "synced");
 });
 
 document.getElementById("signOutBtn")?.addEventListener("click", async () => {

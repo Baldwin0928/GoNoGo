@@ -328,7 +328,7 @@ function renderDocumentationPage() {
     body.value = "";
     actionList.innerHTML = "";
     linkList.innerHTML = "";
-    updateList.innerHTML = "";
+    if (updateList) updateList.innerHTML = "";
     if (commentList) commentList.innerHTML = "";
     if (revisionCurrent) revisionCurrent.innerHTML = "";
     if (revisionActions) revisionActions.innerHTML = "";
@@ -352,7 +352,8 @@ function renderDocumentationPage() {
   body.value = docs.body;
   document.getElementById("docsActionCount").textContent = openActions.length;
   document.getElementById("docsLinkCount").textContent = docs.links.length;
-  document.getElementById("docsUpdateCount").textContent = docs.updates.length;
+  const updateCount = document.getElementById("docsUpdateCount");
+  if (updateCount) updateCount.textContent = docs.updates.length;
   const commentCount = document.getElementById("docsCommentCount");
   if (commentCount) commentCount.textContent = docs.comments.length;
   if (revisionCount) revisionCount.textContent = revisions.length;
@@ -371,7 +372,7 @@ function renderDocumentationPage() {
     <span>Updated ${formatDate(item.updatedAt || item.createdAt)}</span>
     <span>${requires.length} blockers</span>
     <span>${requiredBy.length} downstream</span>
-    ${isStale(item) ? `<span class="stale-chip">Stale</span>` : ""}
+    ${isStale(item) ? `<span class="stale-chip">Needs update</span>` : ""}
   `;
 
   actionList.innerHTML = docs.actionItems.length
@@ -398,17 +399,19 @@ function renderDocumentationPage() {
     `).join("")
     : `<div class="empty-card">No links yet.</div>`;
 
-  updateList.innerHTML = docs.updates.length
-    ? docs.updates.map((update) => `
-      <article class="doc-list-item update-item">
-        <div>
-          <strong>${formatDate(update.createdAt)}</strong>
-          <p>${escapeHtml(update.text)}</p>
-        </div>
-        <button class="row-action" type="button" data-delete-doc-update="${update.id}">Delete</button>
-      </article>
-    `).join("")
-    : `<div class="empty-card">No updates yet.</div>`;
+  if (updateList) {
+    updateList.innerHTML = docs.updates.length
+      ? docs.updates.map((update) => `
+        <article class="doc-list-item update-item">
+          <div>
+            <strong>${formatDate(update.createdAt)}</strong>
+            <p>${escapeHtml(update.text)}</p>
+          </div>
+          <button class="row-action" type="button" data-delete-doc-update="${update.id}">Delete</button>
+        </article>
+      `).join("")
+      : `<div class="empty-card">No updates yet.</div>`;
+  }
 
   if (commentList) {
     commentList.innerHTML = docs.comments.length
@@ -484,7 +487,7 @@ function renderWorkPage() {
 
   document.getElementById("staleWorkList").innerHTML = stale.length
     ? stale.map((item) => workCard(item, true)).join("")
-    : `<div class="empty-card">Nothing stale or blocked for this view.</div>`;
+    : `<div class="empty-card">Nothing needs an update or is blocked for this view.</div>`;
 
   const reviewQueueCount = document.getElementById("reviewQueueCount");
   if (reviewQueueCount) reviewQueueCount.textContent = `${reviewQueue.length} review${reviewQueue.length === 1 ? "" : "s"}`;
@@ -618,7 +621,6 @@ function renderBlockers(blockers) {
             <span>${escapeHtml(item.object.type)} required by ${escapeHtml(byId(item.link.parentId)?.name || "Unknown")}</span>
           </div>
           ${statusSelect(item.object)}
-          ${ownerInput(item.object)}
         </article>
       `
     )
