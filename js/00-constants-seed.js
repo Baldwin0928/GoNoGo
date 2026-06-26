@@ -4,7 +4,8 @@ const SUPABASE_CONFIG = {
   url: "https://cnqbeyrvegwyiqtfevgo.supabase.co",
   publishableKey: "sb_publishable_PVGdOyS4EhSL2GuoNcFP_Q_OgNhAB2O",
   boardId: "gtpl-main",
-  authRequired: true
+  authRequired: true,
+  adminEmail: "chaldwinben@gmail.com"
 };
 
 const objectTypes = ["Project", "Campaign", "Hardware", "Document", "Review", "Task", "Test", "Person/Team"];

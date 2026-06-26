@@ -6,6 +6,7 @@ let cloudSaveTimer = null;
 let cloudApplyingRemote = false;
 let cloudReady = false;
 let cloudLastRemoteAt = "";
+let cloudMembership = null;
 
 function setSyncStatus(label, tone = "local") {
   const status = document.getElementById("syncStatus");
@@ -24,6 +25,102 @@ function setAuthScreen(visible, message = "") {
 
 function cloudUserName(user) {
   return user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || "You";
+}
+
+function cloudUserEmail(user) {
+  return (user?.email || "").trim().toLowerCase();
+}
+
+function showPendingAccessScreen(message) {
+  const screen = document.getElementById("cloudAuthScreen");
+  const card = document.getElementById("cloudAuthForm");
+  const emailInput = document.getElementById("cloudAuthEmail");
+  const submit = card?.querySelector("button[type='submit']");
+  const localBtn = document.getElementById("cloudLocalFallbackBtn");
+  const screenSignOut = document.getElementById("cloudSignOutBtn");
+  const msg = document.getElementById("cloudAuthMessage");
+  if (screen) screen.hidden = false;
+  if (card) {
+    const title = card.querySelector("h1");
+    const body = card.querySelector("p");
+    const label = card.querySelector("label");
+    if (title) title.textContent = "Waiting for approval";
+    if (body) body.textContent = "Your email is verified. An admin needs to approve your access before this shared board opens.";
+    if (label) label.hidden = true;
+  }
+  if (emailInput) emailInput.required = false;
+  if (submit) submit.hidden = true;
+  if (localBtn) {
+    localBtn.hidden = false;
+    localBtn.textContent = "Continue locally";
+  }
+  if (screenSignOut) screenSignOut.hidden = false;
+  if (msg) msg.textContent = message || "Your request is pending. Ask the workspace admin to approve you in Supabase.";
+  document.body.classList.add("auth-locked");
+}
+
+function resetAuthScreen() {
+  const card = document.getElementById("cloudAuthForm");
+  const emailInput = document.getElementById("cloudAuthEmail");
+  const submit = card?.querySelector("button[type='submit']");
+  const localBtn = document.getElementById("cloudLocalFallbackBtn");
+  const screenSignOut = document.getElementById("cloudSignOutBtn");
+  const msg = document.getElementById("cloudAuthMessage");
+  if (card) {
+    const title = card.querySelector("h1");
+    const body = card.querySelector("p");
+    const label = card.querySelector("label");
+    if (title) title.textContent = "Sign in to GoNoGo";
+    if (body) body.textContent = "Use your team email to open the shared readiness board.";
+    if (label) label.hidden = false;
+  }
+  if (emailInput) emailInput.required = true;
+  if (submit) submit.hidden = false;
+  if (localBtn) {
+    localBtn.hidden = false;
+    localBtn.textContent = "Continue locally";
+  }
+  if (screenSignOut) screenSignOut.hidden = true;
+  if (msg) msg.textContent = "You will get a secure sign-in link by email.";
+}
+
+async function getOrCreateMembership(user) {
+  if (!cloudClient || !user) return null;
+  const email = cloudUserEmail(user);
+  if (!email) return null;
+
+  const { data, error } = await cloudClient
+    .from("board_members")
+    .select("board_id, email, role, status, requested_at, approved_at")
+    .eq("board_id", SUPABASE_CONFIG.boardId)
+    .ilike("email", email)
+    .maybeSingle();
+
+  if (error) {
+    console.warn("Membership check failed.", error);
+    return { status: "error", role: "viewer", email };
+  }
+
+  if (data) return data;
+
+  const { data: inserted, error: insertError } = await cloudClient
+    .from("board_members")
+    .insert({
+      board_id: SUPABASE_CONFIG.boardId,
+      user_id: user.id,
+      email,
+      role: "editor",
+      status: "pending"
+    })
+    .select("board_id, email, role, status, requested_at, approved_at")
+    .single();
+
+  if (insertError) {
+    console.warn("Access request could not be created.", insertError);
+    return { status: "error", role: "viewer", email };
+  }
+
+  return inserted;
 }
 
 function serializableBoardState() {
@@ -152,6 +249,21 @@ async function handleSignedIn(session) {
   state.currentUserEmail = session.user.email || "";
   const signOut = document.getElementById("signOutBtn");
   if (signOut) signOut.hidden = false;
+
+  setSyncStatus("Checking access", "syncing");
+  cloudMembership = await getOrCreateMembership(session.user);
+  if (!cloudMembership || cloudMembership.status !== "approved") {
+    cloudReady = false;
+    const status = cloudMembership?.status === "error" ? "Access check failed" : "Pending approval";
+    setSyncStatus(status, cloudMembership?.status === "error" ? "offline" : "syncing");
+    showPendingAccessScreen(
+      cloudMembership?.status === "error"
+        ? "Could not verify board access. You can continue locally, or try signing in again."
+        : `Access request sent for ${state.currentUserEmail}. Admin approval is required before this shared board opens.`
+    );
+    return;
+  }
+
   setAuthScreen(false);
   cloudReady = true;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -162,12 +274,14 @@ async function handleSignedIn(session) {
 
 async function handleSignedOut() {
   cloudSession = null;
+  cloudMembership = null;
   cloudReady = false;
   if (cloudChannel && cloudClient) cloudClient.removeChannel(cloudChannel);
   cloudChannel = null;
   const signOut = document.getElementById("signOutBtn");
   if (signOut) signOut.hidden = true;
   setSyncStatus("Local", "local");
+  resetAuthScreen();
   if (SUPABASE_CONFIG.authRequired) setAuthScreen(true);
 }
 
@@ -204,6 +318,10 @@ document.getElementById("cloudAuthForm")?.addEventListener("submit", async (even
 });
 
 document.getElementById("signOutBtn")?.addEventListener("click", async () => {
+  await cloudClient?.auth.signOut();
+});
+
+document.getElementById("cloudSignOutBtn")?.addEventListener("click", async () => {
   await cloudClient?.auth.signOut();
 });
 
